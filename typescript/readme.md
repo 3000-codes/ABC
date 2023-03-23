@@ -364,7 +364,7 @@ class Animal{
     "outFile": "./",                       // 将输出文件合并为一个文件
     "outDir": "./",                        // 指定输出目录
     "rootDir": "./",                       // 用来控制输出目录结构 --outDir.
-    "removeComments": true,                // 删除编译后的所有的注释
+    "removeComments": true,                // 删除编译后的所有的注释 
     "noEmit": true,                        // 不生成输出文件
     "importHelpers": true,                 // 从 tslib 导入辅助工具函数
     "isolatedModules": true,               // 将每个文件作为单独的模块 （与 'ts.transpileModule' 类似）.
@@ -389,11 +389,16 @@ class Animal{
     node: Node.js 处理模块加载。 使用 Node.js 的查找算法来确定模块加载的文件。从当前目录开始，逐级向上查找父目录，直到根目录。
     classic: TypeScript 1.6 之前的处理模块加载。 从外层到内层逐级查找父模块。
     */
+    /** 别名 */
     "baseUrl": "./",                       // 用于解析非相对模块名称的基目录
-    "paths": {},                           // 模块名到基于 baseUrl 的路径映射的列表
+    "paths": {                            // 模块名到基于 baseUrl 的路径映射的列表
+      "jquery": ["node_modules/jquery/dist/jquery"],
+      "@/*": ["src/*"]
+    },                           
+
     "rootDirs": [],                        // 根文件夹列表，其组合内容表示项目运行时的结构内容
-    "typeRoots": [],                       // 包含类型声明的文件列表
-    "types": [],                           // 需要包含的类型声明文件名列表
+    "typeRoots": [],                       // 包含类型声明的文件列表, 默认值为 [ "./node_modules/@types" ] 会在 node_modules/@types 目录下寻找声明文件
+    "types": [],                           // 需要包含的类型声明文件名列表, 默认值为 [ "node" ] 会自动引入 node 的声明文件
     "allowSyntheticDefaultImports": true,  // 允许从没有设置默认导出的模块中默认导入。
 
     /* Source Map Options */
@@ -405,6 +410,122 @@ class Animal{
     /* 其他选项 */
     "experimentalDecorators": true,        // 启用装饰器
     "emitDecoratorMetadata": true          // 为装饰器提供元数据的支持
-  }
+  },
+  "exclude": [ // 不编译的文件
+    "node_modules"
+  ],
+  "include": [ // 编译的文件
+    "src/**/*"
+  ],
+  "extends": "./node_modules/gts/tsconfig-google.json" // 继承的配置
 }
 ```
+
+## js中的继承
+
+### 原型链继承
+
+```js
+function Animal(name){
+  this.name=name;
+  this.eat=function(){
+    console.log('eat');
+  }
+}
+Animal.prototype.move=function(){
+  console.log('move');
+}
+function Dog(name){
+  this.name=name;
+}
+Dog.prototype=new Animal();
+```
+
++ 缺点
+
+  1. 引用类型的属性被所有实例共享
+  2. 在创建子类实例时，不能向父类构造函数传参
++ 优点
+
+  1. 简单，易于实现
+
+### 构造函数继承
+  
+  ```js
+  function Animal(name){
+    this.name=name;
+    this.eat=function(){
+      console.log('eat');
+    }
+  }
+  Animal.prototype.move=function(){
+    console.log('move');
+  }
+  function Dog(name,age){
+    Animal.call(this,name);
+    this.age=age;
+  }
+  ```
+
++ 缺点
+  
+    1. 方法都在构造函数中定义，每次创建实例都会创建一遍方法
+    2. 无法实现函数复用，每个子类都有父类实例函数的副本，影响性能
++ 优点
+  
+      1. 可以在子类中向父类传参
+      2. 可以实现多继承
+
+### 组合继承
+  
+  ```js
+  function Animal(name){
+    this.name=name;
+    this.eat=function(){
+      console.log('eat');
+    }
+  }
+  Animal.prototype.move=function(){
+    console.log('move');
+  }
+  function Dog(name,age){
+    Animal.call(this,name);
+    this.age=age;
+  }
+  Dog.prototype=new Animal();
+  ```
+
++ 缺点
+  
+    1. 调用了两次父类构造函数，生成了两份实例
++ 优点
+  
+      1. 融合原型链继承和构造函数的优点，是 JavaScript 中最常用的继承模式
+      2. 既可以继承实例属性/方法，也可以继承原型属性/方法
+      3. 不存在引用属性共享问题
+      4. 可传参
+      5. 函数可复用
+
+### 寄生组合继承
+  
+  ```js
+  function Animal(name){
+    this.name=name;
+    this.eat=function(){
+      console.log('eat');
+    }
+  }
+  Animal.prototype.move=function(){
+    console.log('move');
+  }
+  function Dog(name,age){
+    Animal.call(this,name);
+    this.age=age;
+  }
+  Dog.prototype=Object.create(Animal.prototype);
+  Dog.prototype.constructor=Dog;
+  ```
+
+
+
+
