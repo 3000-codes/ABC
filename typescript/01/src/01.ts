@@ -18,3 +18,36 @@ let data2:number=data
 
 let data3:unknown=[1,2,3];
 // let data4:number=data3 //不可以 (unknown不是number的子类)
+
+
+interface Person{
+  name:string;
+  age:number;
+  eat():void;
+}
+
+class Student implements Person{
+  name: string="zhangsan";
+  age: number=18;
+
+  eat(): void {
+    throw new Error("Method not implemented.");
+  }
+}
+
+const symid = Symbol();
+interface Person2{
+  [symid]:string|number;
+  name:string;
+  age:number;
+}
+
+type Name = Person2['name']; // string
+type Values = Person2['name' | 'age']; // string | number
+// type ID=Person2[symis] //=>Error
+type ID=Person2[typeof symid] //=>string|number;
+
+type Person2Keys = keyof Person2; // 'name' | 'age'
+
+let k1:Person2Keys=symid
+console.log(k1);

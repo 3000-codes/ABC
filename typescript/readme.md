@@ -99,3 +99,53 @@ let data2:number=data  //可以 (any是number的子类)
 let data3:unknown=[1,2,3];
 let data4:number=data3 //不可以 (unknown不是number的子类)
 ```
+
+any使用场景: 1. 自定义守卫 2. as any 断言
+
+```ts
+function isString(data:any):data is string{
+  return typeof data === 'string';
+}
+
+//Vue3
+function isRef(r:any):r is Ref{
+  return Boolean(r && r.__v_isRef); //any类型的r参数
+}
+```
+
+unkknown使用场景: 一般作为函数参数
+
+```ts
+function foo(data:unknown){
+  if(typeof data === 'string'){
+    return data.concat('123');
+  }
+  if(typeof data === 'number'){
+    return data.toPrecision(2);
+  }
+  data.toPrecision(2);
+}
+```
+
+## type与interface
+```ts
+const symid = Symbol();
+interface Person{
+  [symid]:string|number;
+  name:string;
+  age:number;
+}
+
+type Name = Person['name']; // string
+type Values = Person['name' | 'age']; // string | number
+// type ID=Person[symis] //=>Error
+type ID=Person[typeof symid] //=>string|number;
+
+// keyof 获取对象的key
+type PersonKeys = keyof Person; // 'name' | 'age'| typeof symid
+let k1:PersonKeys=symid
+console.log(k1);
+```
+
+## undefined
+
