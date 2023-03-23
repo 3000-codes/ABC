@@ -526,6 +526,116 @@ Dog.prototype=new Animal();
   Dog.prototype.constructor=Dog;
   ```
 
+## 类型断言,类型转换
 
+A as B : 将A断言为B类型
+
+```ts
+let a: any = 'this is a string';
+let b = a as string;
+```
+
+<A> B : 将B类型转换为A类型
+
+```ts
+let a: any = 'this is a string';
+let b = <string>a;
+```
+
+## 类型守卫
+
+### typeof
+
+```ts
+function getLength(something: string | number): number {
+  if (typeof something === 'string') {
+    return something.length;
+  } else {
+    return something.toString().length;
+  }
+}
+```
+
+### instanceof
+
+```ts
+class NumberObj {
+  count: number;
+}
+function add(first: object | NumberObj, second: object | NumberObj) {
+  if (first instanceof NumberObj && second instanceof NumberObj) {
+    return first.count + second.count;
+  }
+  return 0;
+}
+```
+
+### in
+
+```ts
+interface Person {
+  name: string;
+  age: number;
+}
+function getPersonName(person: Person) {
+  if ('name' in person) {
+    return person.name;
+  }
+  return 'unknown name';
+}
+```
+
+### 字面量类型守卫
+
+```ts
+const convert = (c: 'a' | 1) => {
+  if (c === 1) {
+      return c.toFixed()
+  } else if (c === 'a') {
+      return c.toLowerCase()
+  }
+}
+```
+
+### 自定义类型守卫 is
+  
+```ts
+class Foo {}
+class Bar {}
+
+function isFoo(arg: Foo | Bar): arg is Foo {
+    return arg instanceof Foo;
+}
+
+function doStuff(arg: Foo | Bar) {
+    if (isFoo(arg)) {
+        // arg is now of type Foo
+        arg;
+    } else {
+        // arg is now of type Bar
+        arg;
+    }
+}
+```
+
+### Vue3中的类型守卫
+
+```ts
+function isRef<T>(r: any): r is Ref<T> {
+  return Boolean(r && r.__v_isRef === true);
+}
+```
+
+### 判断Promise
+  
+  ```ts
+  // function isPromise<T = any>(val: unknown): val is Promise<T> {
+  //   return isObject(val) && isFunction(val.then) && isFunction(val.catch);
+  // }
+
+  function isPromise(obj:any) : obj is Promise<any> {
+    return obj instanceof Promise;
+}
+  ```
 
 
