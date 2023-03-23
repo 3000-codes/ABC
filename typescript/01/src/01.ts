@@ -2,7 +2,7 @@ export{}
 let str: string = 'Hello World';
 console.log(str);
 
-type DataFlow=string|number;
+export type DataFlow=string|number;
 
 function foo(data:DataFlow){
   //  data.toLocaleString
@@ -69,3 +69,34 @@ let data4={
 } 
 let username2: keyof typeof data4 = 'name';
 let user2=data4[username2] //zs
+
+type Account=Array<number>;
+const account3:Account=[10,12,30,40,50];
+
+function log(target:any,propName:string,descriptor:PropertyDescriptor){
+  const targetMethod=descriptor.value;
+  descriptor.value=function(...args:any[]){
+    console.log('before');
+    targetMethod.call(this,...args);
+    console.log('after');
+  }
+}
+
+export class Animal{
+  name:string;
+  age:number;
+  constructor(name:string,age:number){
+    this.name=name;
+    this.age=age;
+  }
+  @log
+  eat(){
+    console.log('eat');
+  }
+  move(){
+    console.log('move');
+  }
+}
+
+const animal=new Animal('zs',18);
+animal.eat();
