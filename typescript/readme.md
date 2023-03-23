@@ -638,4 +638,21 @@ function isRef<T>(r: any): r is Ref<T> {
 }
   ```
 
+## 泛型约束
+  
+  ```ts
+  interface Lengthwise {
+    length: number;
+  }
 
+  function loggingIdentity<T extends Lengthwise>(arg: T): T {
+    console.log(arg.length);  // Now we know it has a .length property, so no more error
+    return arg;
+  }
+  ```
+
+  ```ts
+  type TypA=string|number
+  type KeysTyp<K>=K extends TypA?K:never
+  type TypC=KeysTyp<string|number|boolean> // => string|number
+```
