@@ -51,3 +51,21 @@ type Person2Keys = keyof Person2; // 'name' | 'age'
 
 let k1:Person2Keys=symid
 console.log(k1);
+
+let str1:string|undefined
+console.log(str1);
+
+function fn(data?:string){
+  // 三种写法
+  data?.toLocaleString();
+  if(data)data.toLocaleString();
+  data&&data.toLocaleString();
+}
+
+
+let data4={
+  name:'zs',
+  age:18
+} 
+let username2: keyof typeof data4 = 'name';
+let user2=data4[username2] //zs

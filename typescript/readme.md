@@ -149,3 +149,61 @@ console.log(k1);
 
 ## undefined
 
+```ts
+let str1:string
+console.log(str1); //Error: 在赋值前使用了变量“str1”。(2454)
+```
+fix: 需要在tsconfig.json中配置`strictNullChecks`为`false`，才能使用。(不建议)
+
+```ts
+let str2:string|undefined
+console.log(str2); //undefined 
+```
+
+```ts
+//函数参数
+function fn(data?:string){
+  // 三种写法
+  data?.toLocaleString();
+  if(data)data.toLocaleString();
+  data&&data.toLocaleString();
+}
+```
+
+ps:
++ 可以赋值为`undefined`的类型`any`,`unknown`,`undefined`
++ 可以赋值为`null`的类型`any`,`unknown`,`null`
+
+## 赋值易错点
+
+```ts
+let data1={
+  name:'zs',
+  age:18
+}
+let username='name'
+let user=data1[username] //Error:元素隐式具有 "any" 类型，因为类型为 "string" 的表达式不能用于索引类型
+
+// fix
+let data2={
+  name:'zs',
+  age:18
+}  
+// const username2='name' //使用const锁定类型
+let username2 : keyof typeof data2='name' //使用keyof获取对象的key
+let user2=data2[username2] //zs
+```
+
+## interface与type区别
+
++ 定义类型范围不同
+  + `interface`只能定义对象类型或函数类型
+  + `type`可以定义任何类型,包括基本类型,联合类型,元组类型,枚举类型,交叉类型,类型别名
+
++ 拓展方式
+  + `interface`可以使用`extends`关键字拓展一个或多个接口,也可以继承type
+  + `type`可以使用`&`关键字拓展
+
++ 可以定义重名的属性
+  + `interface`可以,结果会合并
+  + `type`不可以,编译报错
