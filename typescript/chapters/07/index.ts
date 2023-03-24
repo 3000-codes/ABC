@@ -60,3 +60,27 @@ function withAge<T extends ConstructorType> (Base:T) {
 const PersonWithAge = withAge(Person)
 const personWithAge = new PersonWithAge('张三', 18)
 console.log(personWithAge.age)
+
+type S=string&string[]
+
+// const str1:S = '123'
+
+type A = {
+  a:string,
+  b:string
+}
+type B = {
+  c: number,
+  d: number
+}
+
+function cross<T extends object, U extends object> (a:T, b:U):T&U {
+  const result = {} as T&U
+  for (const key in a) {
+    (result[key] as any) = a[key]
+  }
+  for (const key in b) {
+    (result[key] as any) = b[key]
+  }
+  return result
+}

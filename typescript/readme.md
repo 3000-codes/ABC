@@ -667,3 +667,40 @@ function add(a: any, b: any): any {
 }
 ```
 ps: 重载的函数必须放在一起, 且必须放在最后, 且必须有实现,且最后一个实现必须是包含所有重载的实现
+
+
+## 泛型工厂函数
+  
+  ```ts
+// 通用工厂函数类型，接收泛型，返回泛型
+type constructorReturnType<T> = new (...arg: any) => T
+
+// 工厂函数
+function createInstanceFactory<T>(Constructor: constructorReturnType<T>) {
+    console.log(Constructor.name)  //CommercialBank
+    return new Constructor('工商银行')
+}
+
+// <CommercialBank> 当做类型使用，(CommercialBank) 当做对象变量使用
+let result = createInstanceFactory<CommercialBank>(CommercialBank)
+console.log(result.name);  //result是CommercialBank类型，可以读取实例属性
+
+  ```
+
+## 交叉类型和通用交叉方法
+  
+  ```ts
+  type A = {
+    a:string,
+    b:string
+  }
+  type B = {
+    c: number,
+    d: number
+  }
+  type C = A & B //=> {a:string,b:string,c:number,d:number}
+
+  type D = string & number //=> never
+  type E = string & string[] // 没有意义
+
+  
