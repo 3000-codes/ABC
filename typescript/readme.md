@@ -656,3 +656,14 @@ function isRef<T>(r: any): r is Ref<T> {
   type KeysTyp<K>=K extends TypA?K:never
   type TypC=KeysTyp<string|number|boolean> // => string|number
 ```
+
+## 函数重载
+
+```ts
+function add(a: string, b: string): string;
+function add(a: number, b: number): number;
+function add(a: any, b: any): any {
+  return a + b;
+}
+```
+ps: 重载的函数必须放在一起, 且必须放在最后, 且必须有实现,且最后一个实现必须是包含所有重载的实现
