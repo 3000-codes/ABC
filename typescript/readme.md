@@ -758,26 +758,6 @@ type C = Exclude<A,string> //=> number | boolean
   };
   ```
 
-## Partial
-
-`Partial<T>` 将T中的所有属性变为可选
-  
-  ```ts
-  interface Person {
-    name: string;
-    age: number;
-  }
-  type PartialPerson = Partial<Person>; //=> {name?:string,age?:number}
-  ```
-
-实现
-  
-  ```ts
-  type Partial<T> = {
-    [P in keyof T]?: T[P];
-  };
-  ```
-
 ## Pick
 
 `Pick<T,K>` 从T中挑选出K中的属性
@@ -835,3 +815,66 @@ type C = Exclude<A,string> //=> number | boolean
   type Omit<T,K extends any>=Pick<T,Exclude<keyof T,K>>
   ```
   
+## Required
+
+`Required<T>` 将T中的所有属性变为必选
+  
+  ```ts
+  interface Person {
+    name?: string;
+    age?: number;
+  }
+  type RequiredPerson = Required<Person>; //=> {name:string,age:number}
+  ```
+
+实现
+  
+  ```ts
+  type Required<T> = {
+    [P in keyof T]-?: T[P]; // -? 变为必选
+  };
+  ```
+## Partial
+
+`Partial<T>` 将T中的所有属性变为可选
+  
+  ```ts
+  interface Person {
+    name: string;
+    age: number;
+  }
+  type PartialPerson = Partial<Person>; //=> {name?:string,age?:number}
+  ```
+
+实现
+  
+  ```ts
+  type Partial<T> = {
+    [P in keyof T]?: T[P];
+  };
+  ```
+
+## Readonly
+
+`Readonly<T>` 将T中的所有属性变为只读
+  
+  ```ts
+  interface Person {
+    name: string;
+    age: number;
+  }
+  type ReadonlyPerson = Readonly<Person>; //=> {readonly name:string,readonly age:number}
+  ```
+
+实现
+  
+  ```ts
+  type Readonly<T> = {
+    readonly [P in keyof T]: T[P];
+  };
+// 去除readonly
+  type UnReadonly<T> = {
+    -readonly [P in keyof T]: T[P];
+  };
+  ```
+
