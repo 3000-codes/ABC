@@ -878,3 +878,23 @@ type C = Exclude<A,string> //=> number | boolean
   };
   ```
 
+## NonNullable
+
+`NonNullable<T>` 将T中的所有属性变为非空
+  
+  ```ts
+  type A = string | number | null | undefined
+  type B = NonNullable<A> //=> string | number
+  ```
+
+实现
+  
+  ```ts
+  type NonNullable<T> = T extends null | undefined ? never : T;
+  ```
+
+## declare  与 export
+
+  + declare 用于声明全局变量,可以重复命名
+  + export 用于导出模块,不能重复命名
+  
