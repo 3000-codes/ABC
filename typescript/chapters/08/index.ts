@@ -23,3 +23,7 @@ type EleOfArr<T>=T extends Array<infer P>?P:never
 const arr:number[] = [1]
 
 type EA=EleOfArr<typeof arr>
+
+type KeysOf<T>=T extends any? T: never;
+
+type K= KeysOf< keyof Customer>

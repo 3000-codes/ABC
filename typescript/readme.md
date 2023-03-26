@@ -702,5 +702,136 @@ console.log(result.name);  //result是CommercialBank类型，可以读取实例�
 
   type D = string & number //=> never
   type E = string & string[] // 没有意义
+```
 
+## 高阶类型Extract和Exclude
+
+  + Extract<T,U> 从T中提取出可以赋值给U的类型
+  + Exclude<T,U> 从T中剔除掉可以赋值给U的类型
+  
+```ts
+type A = string | number | boolean
+type B = Extract<A,string> //=> string 
+type C = Exclude<A,string> //=> number | boolean
+```
+
+实现
+    
+  ```ts
+  type Extract<T, U> = T extends U ? T : never;
+  type Exclude<T, U> = T extends U ? never : T;
+  ```
+
+## keyof查看对象的key(技巧)
+  
+  ```ts
+  interface Person {
+    name: string;
+    age: number;
+  }
+  type PersonKeys = keyof Person; //=> keyof Person
+
+  // 解决办法
+  type Temp<T>= T extends any ? T : never
+  type PersonKeys = Temp<keyof Person>; //=> "name" | "age"
+  ```
+
+## Record
+
+`Record<K,T>` 将K中的所有属性的值转换为T类型
+  
+  ```ts
+  interface Person {
+    name: string;
+    age: number;
+  }
+  type PersonKeys = keyof Person; //=> keyof Person ( "name" | "age" )
+  type PersonTypes = Person[PersonKeys]; //=> string | number
+  type PersonMap = Record<PersonKeys, PersonTypes>; //=> {name:string,age:number}
+  ```
+
+  实现
+    
+  ```ts
+  type Record<K extends keyof any, T> = {
+    [P in K]: T;
+  };
+  ```
+
+## Partial
+
+`Partial<T>` 将T中的所有属性变为可选
+  
+  ```ts
+  interface Person {
+    name: string;
+    age: number;
+  }
+  type PartialPerson = Partial<Person>; //=> {name?:string,age?:number}
+  ```
+
+实现
+  
+  ```ts
+  type Partial<T> = {
+    [P in keyof T]?: T[P];
+  };
+  ```
+
+## Pick
+
+`Pick<T,K>` 从T中挑选出K中的属性
+  
+  ```ts
+  interface Person {
+    name: string;
+    age: number;
+  }
+  type PickPerson = Pick<Person, 'name'>; //=> {name:string}
+  ```
+
+实现
+  
+  ```ts
+  type Pick<T, K extends keyof T> = {
+    [P in K]: T[P];
+  };
+  ```
+
+## Omit
+
+`Omit<T,K>` 从T中剔除掉K中的属性
+  
+  ```ts
+  interface Person {
+    name: string;
+    age: number;
+  }
+  type OmitPerson = Omit<Person, 'name'>; //=> {age:number}
+  ```
+
+实现
+  
+  ```ts
+  // 初版:先将所有属性遍历
+  type Omit1<T,K>={
+    [P in keyof T ]:T[P]
+  }
+
+  // 优化版:先将所有属性遍历,再剔除掉K中的属性
+  type Omit2<T,K>={
+    [P in keyof T as  P extends K? never :P ]:T[P]
+  }
+
+  // 优化优化:使用Exclude
+  type Omit3<T,K>={
+    [P in Exclude<keyof T,K>]:T[P]
+  }
+
+  // 优化优化优化:使用Pick
+  type Omit4<T,K>=Pick<T,Exclude<keyof T,K>>
+
+  // 最终版:使用Exclude和Pick
+  type Omit<T,K extends any>=Pick<T,Exclude<keyof T,K>>
+  ```
   
