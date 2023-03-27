@@ -1,0 +1,28 @@
+{
+  "name": "decorators",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev:build": "tsc -w",
+    "dev:start": "nodemon --watch ./dist/teaching js --exec node ./dist/teaching/1ClassDecorator.js",
+    "start": "concurrently npm:dev:*",
+    "tsc": "tsc ./src/teaching/1ClassDecorator.ts --target ES5 -w --experimentalDecorators",
+    "ctrl": "ts-node src/controller/HomeController.ts",
+    "beainapp": "nodemon --watch src/ -e ts --exec ts-node ./src/expressapp.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.56.0",
+    "@typescript-eslint/parser": "^5.56.0",
+    "concurrently": "^7.6.0",
+    "eslint": "^8.0.1",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-n": "^15.0.0",
+    "eslint-plugin-promise": "^6.0.0",
+    "typescript": "^5.0.2"
+  }
+}

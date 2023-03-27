@@ -955,3 +955,86 @@ type C = Exclude<A,string> //=> number | boolean
   $('#app').css('color','red')
   ```
  
+ ## 装饰器
+
+ 本质: 
+  + 一种特殊类型的声明,能够被附加到类声明,方法,属性或参数上,可以修改类/方法/属性/参数的行为
+  + 通俗的讲:装饰器是一个方法,可以注入到类,方法,属性参数上来扩展类,属性,方法,参数的功能
+  + 常见的装饰器:类装饰器,属性装饰器,方法装饰器,参数装饰器
+
+ ### 类装饰器
+
+```ts
+// 类装饰器(不传参)
+function logClass1< T extends new (...args:any[])=>any>(target:T):T{
+  console.log(target) //=> [Function: HttpClient]
+  return class extends target{
+    apiUrl:any = 'xxxx'
+    getData(){
+      this.apiUrl = this.apiUrl + '---'
+      console.log(this.apiUrl)
+    }
+  }
+}
+// 类装饰器(传参)
+function logClass2(params:string){
+  return function< T extends new (...args:any[])=>any>(target:T):T{
+    console.log(target) //=> [Function: HttpClient]
+    return class extends target{
+      apiUrl:any = 'xxxx'
+      getData(){
+        this.apiUrl = this.apiUrl + '---'
+        console.log(this.apiUrl)
+      }
+    }
+  }
+}
+
+@logClass1
+class HttpClient{
+  constructor(){
+  }
+  getData(){
+  }
+}
+
+```
+
++ 类装饰器在类声明之前被声明（紧靠着类声明）
++ 类装饰器应用于类构造函数，可以用来监视，修改或替换类定义
++ 类装饰器不能用在声明文件中（.d.ts），也不能用在任何外部上下文（比如declare的类）中
++ 类装饰器表达式会在运行时当作函数被调用，类的构造函数作为其唯一的参数
++ 如果类装饰器返回一个值，它会使用提供的构造函数来替换类的声明
++ 多个装饰器会形成装饰器链，当多个装饰器应用于一个声明上时会进行如下步骤的操作：
+  + 由上至下依次对装饰器表达式求值
+  + 求值的结果会被当作函数，由下至上依次调用
+
+### 属性装饰器
+  
+  ```ts
+  // 属性装饰器
+  function logProperty(params:any){
+    return function(target:any,attr:any){
+      console.log(target) //=> HttpClient { apiUrl: 'xxxx' }
+      console.log(attr) //=> apiUrl
+      target[attr] = params
+    }
+  }
+
+  class HttpClient{
+    @logProperty('xxxx')
+    public apiUrl:string | undefined
+    constructor(){
+    }
+    getData(){
+    }
+  }
+  ```
+
+### 方法装饰器
+
+```ts
+// 方法装饰器
+function logMethod(params:any){
+  
+}
