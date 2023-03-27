@@ -897,4 +897,61 @@ type C = Exclude<A,string> //=> number | boolean
 
   + declare 用于声明全局变量,可以重复命名
   + export 用于导出模块,不能重复命名
+  + type/interface 可以不使用declare
   
+## 命名空间
+
+  主要用于解决命名冲突的问题
+  使用时需要`jQuery.A.B....`
+
+  
+  
+  ```ts
+  // index.d.ts
+  declare namespace jQuery {
+    type CssSelector = {
+      css:(key:string,value:string)=>CssSelector
+    }
+    export function $(selector:string):CssSelector
+    export function $(ready:()=>void):void
+
+  // 命名空间可以嵌套
+    export namespace $ {
+      function ajax(url:string,settings?:any):void
+      function post(url:string,data:any,success:(data:any)=>void,fail:(err:any)=>void):void
+    }
+
+  }
+
+  // index.ts
+  jQuery.$('#app').css('color','red')
+  jQuery.$(function(){
+    jQuery.$.ajax('/api/getUserInfo')
+  })
+  ```
+  
+## 模块
+  
+  不再需要使用命名空间,可以直接使用`$.A.B....`
+  
+  ```ts
+  // index.d.ts
+  declare module 'jQuery' {
+    type CssSelector = {
+      css:(key:string,value:string)=>CssSelector
+    }
+    function $(selector:string):CssSelector
+    function $(ready:()=>void):void
+    namespace $ {
+      function ajax(url:string,settings?:any):void
+      function post(url:string,data:any,success:(data:any)=>void,fail:(err:any)=>void):void
+    }
+
+    export = $ // 用于导出默认模块
+  }
+
+  // index.ts
+  import $ from 'jQuery'
+  $('#app').css('color','red')
+  ```
+ 
