@@ -1,6 +1,6 @@
 # type-challenges 技巧
 
-#### 常用方法解释
+### 常用方法解释
 
 ##### keyof
 
@@ -46,6 +46,15 @@ type B = P<never>
 
 ps:此处`T`,`U`,`K` 代表联合类型，`O` 代表对象，`P` 代表属性
 
+#### 自定义工具函数
+
+```ts
+// 使用中间类型,如果 C=A,C=B,则A=B
+type Equal<A,B> = (<C>()=>C extends A?1:2) extends (<C>()=>C extends B?1:2)?true:false
+
+// isAny:根据相似性判断是否为any
+type IsAny<T> = 0 extends (1 & T) ? true : false
+```
 
 ###  遍历元组
 
@@ -68,8 +77,18 @@ type TupleToObject<T extends readonly any[]> = {
 }
 ```
 
+### 遍历字符串
 
-### 00003-medium-omit & 00004-easy-pick
+字符串=>元组
+
+```ts
+type StringToArray<T extends string, S extends string = ''> = T extends `${S}${infer R}` ? [S, ...StringToArray<R>] : []
+```
+
+
+### 高级类型的实现
+
+#### 00003-medium-omit & 00004-easy-pick
 
 
 ```ts
@@ -92,7 +111,7 @@ type MyPick<T, K extends keyof T> = {
 + `P in keyof T as P extends K ?P:never` 等价于 `P in Extract<keyof T,K>`
 
 
-### 00008-medium-readonly-2
+#### 00008-medium-readonly-2
 
 ```ts
 type MyReadonly2<T, K extends keyof T= keyof T> =
