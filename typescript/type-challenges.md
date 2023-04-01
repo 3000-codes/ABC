@@ -36,7 +36,6 @@ type B = P<never>
 + **B的extends**： 如果是泛型的话，会将联合类型的联合项拆成单项，分别代入条件类型，然后将每个单项代入得到的结果再联合起来，得到最终的判断结果。`never`拆开后是空集,所以 `P<never>`将不会被判断，所以结果为`never`。
 
 
-
 #### 常用高级类型
 
 + `Exclude<T, U>` 从 T 中剔除可以赋值给 U 的类型。
@@ -128,3 +127,11 @@ type MyReadonly2<T, K extends keyof T = keyof T> = Readonly<Pick<T, K>> & Omit<T
 ```
 + 当需要两个类型而只传递了一个参数时，可以使用默认参数
 + 当需要遍历两个类型时，可以使用联合类型
+
+### 函数相关 
+
+```ts
+type MyArguments<T extends (...args: any) => any> = T extends (...args: infer R) => any ? R : never
+
+type MyReturnType<T extends (...args: any) => any> = T extends (...args: any) => infer R ? R : never
+```

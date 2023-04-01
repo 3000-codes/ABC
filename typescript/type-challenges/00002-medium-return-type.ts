@@ -22,4 +22,4 @@ const fn1 = (v: boolean, w: any) => v ? 1 : 2
 
 
 // ============= Your Code Here =============
-type MyReturnType<T> = T extends (...rest:any[])=>infer R ?R:never
+export type MyReturnType<T> = T extends (...rest:any[])=>infer R ?R:never

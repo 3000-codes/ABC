@@ -903,8 +903,6 @@ type C = Exclude<A,string> //=> number | boolean
 
   主要用于解决命名冲突的问题
   使用时需要`jQuery.A.B....`
-
-  
   
   ```ts
   // index.d.ts
