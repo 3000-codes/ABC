@@ -16,6 +16,7 @@ type cases = [
 
 // ============= Your Code Here =============
 type KebabCase<S extends string> = S extends `${infer H}${infer R}`?(
+  // NOTED:H前面再加一个泛型判断是否为第一位?
   H extends Uppercase<H>?`-${Lowercase<H>}${KebabCase<R>}`:`${H}${KebabCase<R>}`
 ):S
 
