@@ -65,3 +65,5 @@ type ReplaceKeys<U, T, Y> = U extends infer N?{
   P extends keyof Y?Y[P]:never
   :N[P]
 }:U
+
+type R1=ReplaceKeys<Nodes, 'name' | 'flag', { name: number; flag: string }>
