@@ -87,6 +87,8 @@ pnpx mrm@2 lint-staged
 
 #### commitlint
 
+[commitlint](https://commitlint.js.org/#/guides-local-setup)是一个用于检查提交信息的工具,可以根据配置的规则来检查提交信息是否符合规范,如果不符合规范,则会报错,并且不允许提交.
+
 ```bash
 # 安装
 pnpm add -D @commitlint/{config-conventional,cli}
