@@ -1,0 +1,10 @@
+<script>
+  const isString = (val) => typeof val === "string"; // 判断是否是字符串
+  const toNumber = (val) => {
+    const n = isString(val) ? Number(val) : NaN; // 
+    return isNaN(n) ? val : n;
+  };
+
+  const res = toNumber('.1.5')
+  console.log(res);
+</script>
