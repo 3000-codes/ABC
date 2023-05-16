@@ -1,3 +1,4 @@
+<div id="btn">按钮</div>
 <script>
   const isString = (val) => typeof val === "string"; // 判断是否是字符串
   const toNumber = (val) => {
@@ -7,4 +8,94 @@
 
   const res = toNumber('.1.5')
   console.log(res);
+
+  // const event = new Event('start')
+  // document.addEventListener('start', () => {
+  //   console.log('start')
+  // })
+  // document.dispatchEvent(event)
+
+  // const clickEvent = new MouseEvent('click', {
+  //   view: window,
+  //   bubbles: true,
+  //   cancelable: true
+  // })
+  // const btn = document.querySelector('#btn')
+  // btn.addEventListener('click', () => {
+  //   console.log('clicked')
+  // })
+  // setInterval(() => {
+  //   btn.dispatchEvent(clickEvent)
+  // }, 1000)
+
+  const UP_KEYDOWN_EVENT = new KeyboardEvent('keydown', {
+    key: 'ArrowUp',
+    keyCode: 38,
+    code: 'ArrowUp',
+    which: 38,
+    shiftKey: false,
+    ctrlKey: false,
+    altKey: false,
+    metaKey: false,
+    repeat: false,
+    isComposing: false,
+    charCode: 0,
+  })
+
+  const DOWN_KEYDOWN_EVENT = new KeyboardEvent('keydown', {
+    key: 'ArrowDown',
+    keyCode: 40,
+    code: 'ArrowDown',
+    which: 40,
+    shiftKey: false,
+    ctrlKey: false,
+    altKey: false,
+    metaKey: false,
+    repeat: false,
+    isComposing: false,
+    charCode: 0,
+  })
+
+  const LEFT_KEYDOWN_EVENT = new KeyboardEvent('keydown', {
+    key: 'ArrowLeft',
+    keyCode: 37,
+    code: 'ArrowLeft',
+    which: 37,
+    shiftKey: false,
+    ctrlKey: false,
+    altKey: false,
+    metaKey: false,
+    repeat: false,
+    isComposing: false,
+    charCode: 0,
+  })
+
+    (function () {
+      const RIGHT_KEYDOWN_EVENT = new KeyboardEvent('keydown', {
+        key: 'ArrowRight',
+        keyCode: 39,
+        code: 'ArrowRight',
+        which: 39,
+        shiftKey: false,
+        ctrlKey: false,
+        altKey: false,
+        metaKey: false,
+        repeat: false,
+        isComposing: false,
+        charCode: 0,
+      })
+
+      // setTimeout(() => {
+      //   document.dispatchEvent(RIGHT_KEYDOWN_EVENT)
+      // }, 1000)
+      setInterval(() => {
+        document.dispatchEvent(RIGHT_KEYDOWN_EVENT)
+      }, 1000)
+    })()
+
+
+
+
+
+
 </script>
