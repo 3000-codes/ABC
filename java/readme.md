@@ -174,6 +174,8 @@ for(int i=0;i<arr.length;i++){
     + 创建: 申请内存空间
     + 加载: 将字节码文件加载到方法区中
 
+ps: 静态方法和静态变量再jdk7.0以后放到了堆中,之前放到了方法区中
+
 ## 面向对象
 
 + 阶段一:基础思想(JavaSE,JDBC,)
@@ -215,7 +217,7 @@ for(int i=0;i<arr.length;i++){
         * 工具:构造器,构造器代码块,静态代码块
     - 封装: 
         * 在程序中,给不同内容添加不同权限的访问级别,提升程序的安全性和访问性
-        * 访问级别: private,省略,protected,public
+        * 访问级别: private,缺省,protected,public
 + 类的成员:
     - 成员量(属性):常量,变量
         * 成员变量:声明在代码块外部的变量,包含`实例变量`和`静态变量`
@@ -243,22 +245,68 @@ for(int i=0;i<arr.length;i++){
 #### this关键字
 
 + this: 代表当前对象
-    - 用于区分局部变量和实例变量
-    - 用于在构造器中调用其他构造器
-    - 用于返回当前对象
-    - 用于在方法中返回当前对象
-    - 用于在方法中调用其他方法
-    - 用于在方法中调用其他构造器
-    - 用于在内部类中返回当前对象
-    - 用于在内部类中调用其他方法
-    - 用于在内部类中调用其他构造器
++ this.成员变量: 访问当前对象的成员变量
++ this.成员方法(): 访问当前对象的成员方法
++ this(...params): 访问当前对象的构造器
+
+#### static关键字
+
++ static: 静态的,共享的
++ 可以修饰成员变量,成员方法,代码块,内部类
++ 被static修饰的成员,不再属于对象,而是属于类,可以通过类名.成员的方式访问
++ 被static修饰的成员,会随着类的加载而加载,随着类的消失而消失
++ 静态代码块: 随着类的加载而加载,只加载一次,用于初始化静态成员
+
+##### 单例模式
+
++ 单例模式: 保证一个类只有一个对象
++ 将构造器私有化,防止外部创建对象
++ 提供一个静态方法,用于获取对象
++ 两种方式:
+    - 延迟加载模式(懒汉模式): 第一次使用时创建对象
+    - 立即加载模式(饿汉模式): 类加载时就创建对象,缺点:可能该对象永远不会使用,浪费内存
+
+```java
+// 饥汉模式(迫不及待) : 类加载时就创建对象
+class Singleton {
+    private static Singleton instance = new Singleton();
+    private Singleton() {}
+    public static Singleton getInstance() {
+        return instance;
+    }
+}
+// 懒汉模式(非诚勿扰) : 第一次使用时创建对象
+class Singleton {
+    private static Singleton instance;
+    private Singleton() {}
+    public static Singleton getInstance() {
+        if (instance == null) {
+            instance = new Singleton();
+        }
+        return instance;
+    }
+}
+// 使用
+Singleton s = Singleton.getInstance();
+```
+```
+
 
 #### 权限修饰符
 
 + private: 
-    - 私有的,只能在本类中访问
+    - 私有的,只能在`本类`中访问,子类也不能访问
     - 修饰成员变量,成员方法,构造器
     - 如果外部需要访问,可以通过提供公共的访问方式
++ 缺省:
+    - 没有修饰符,只能在`本包`中访问,如果不同包中的子类也不能访问
+    - 修饰成员变量,成员方法,构造器
++ protected:
+    - 受保护的,只能在`本包`中访问,在子类中或同一个包中可见
+    - 修饰成员变量,成员方法,构造器
++ public:
+    - 公共的,可以在`任意位置`访问
+    - 修饰成员变量,成员方法,构造器
 
 #### 构造器
 
@@ -277,6 +325,14 @@ for(int i=0;i<arr.length;i++){
 }
 ```
 
+#### 构造器代码块
+
++ 每次调用构造器都会执行构造器代码块
++ 优先于构造器执行
++ 多个构造器代码块,按照顺序执行
++ 可以将相同的代码放到构造器代码块中,减少代码的冗余
+
+
 #### JavaBean标准
 
 + 程序员间的约定
@@ -293,3 +349,71 @@ for(int i=0;i<arr.length;i++){
     - toString方法,hashCode方法,equals方法
     - 内部类
 + 作用: 封装数据
+
+#### 匿名对象
+
++ 匿名对象: 没有名字的对象
++ 匿名对象的使用场景:
+    - 当对象只需要使用一次的时候
+    - 当对象作为参数传递的时候
++ 匿名对象的使用注意事项:
+    - 匿名对象只能调用一次方法
+    - 匿名对象不能赋值给一个变量
+    - 匿名对象可以作为参数传递
+    - 匿名对象可以作为方法的返回值
+
+```java
+new 类名().成员方法();
+```
+
+#### package 和 import关键字
+
++ package 作用: 声明类所在的包,声明在第一行
++ 格式: `package 包名;`
+
++ import 作用: 导入指定包下的类或者接口
++ 格式: 
+    - `import 包名.类名;` : 导入指定包下的指定的类或者接口
+    - `import 包名.*;` : 导入指定包下的所有类或者接口
+
+## 核心类
+
+### System类
+
+System类包含了一些有用的类字段和方法,它不能被实例化,提供了标准输入,标准输出和错误输出流,提供了访问外部定义的属性和环境变量的方法
+
+该类位于java.lang包中,所以不需要导入
+
+#### System类的常用方法
+
+ + `public static PrintStream err` : 标准错误输出流
+ + `public static PrintStream out` : 标准输出流
+ + `public static InputStream in` : 标准输入流
++ `public static void exit(int status)` : 终止当前运行的Java虚拟机,非零表示异常终止
++ `public static long currentTimeMillis()` : 返回当前时间(以毫秒为单位)
++ `public static void gc()` : 运行垃圾回收器
++ `public static void arraycopy(Object src, int srcPos, Object dest, int destPos, int length)` : 将数组中指定的数据拷贝到另一个数组中
++ `public static long nanoTime()` : 返回最准确的可用系统计时器的当前值(以毫微秒为单位)
++ `public static void runFinalization()` : 强制调用已经失去引用的对象的finalize方法
++ `public static Properties getProperties()` : 获取当前系统的属性集
++ `public static String getProperty(String key)` : 获取指定键指示的系统属性
++ `public static String getenv(String name)` : 获取指定的环境变量的值
++ `public static void load(String filename)` : 加载指定的文件名的动态库
+
+### Scanner类
+
++ 用于获取键盘输入,可以获取基本类型的值和字符串值
++ 位于java.util包中,需要导入
++ 构造器
+    - `public Scanner(InputStream source)` : 构造一个新的Scanner,它生成的值是从指定的输入流扫描的
+    - `public Scanner(String source)` : 构造一个新的Scanner,它生成的值是从指定的字符串扫描的
++ 常用方法
+    - `public boolean hasNext()` : 判断是否还有下一个输入项
+    - `public String next()` : 读取下一个输入项,遇到空格,tab,回车结束
+    - `public int nextInt()` : 读取下一个int类型的值,
+    - `public double nextDouble()` : 读取下一个double类型的值
+    - `public String nextLine()` : 读取下一行,在该方法前不能有`非nextLine的其他`的输入项
+    - `public boolean hasNextLine()` : 判断是否还有下一行
+    - `public void close()` : 关闭此扫描器(关闭后不可再使用)
+
+### Math类
