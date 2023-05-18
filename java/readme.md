@@ -289,8 +289,6 @@ class Singleton {
 // 使用
 Singleton s = Singleton.getInstance();
 ```
-```
-
 
 #### 权限修饰符
 
@@ -376,6 +374,23 @@ new 类名().成员方法();
     - `import 包名.类名;` : 导入指定包下的指定的类或者接口
     - `import 包名.*;` : 导入指定包下的所有类或者接口
 
+### 继承
+
++ 继承: 子类继承父类的属性和行为
++ 作用: 提高代码的复用性和拓展性
++ 语法: `class 子类 extends 父类 {}`（子类与父类是is-a的关系）
++ 只支持单继承,不支持多继承
++ 所有的类都默认继承Object类（Object类是所有类的父类）
+
++ 子类继承父类的私有成员,受限于访问权限,不能直接访问，但是可以通过父类提供的公共的访问方式访问
++ 子类继承父类的构造器,通过super关键字调用父类的构造器
+
+#### 方法重写(10-方法的重写)
+
++ 子类继承父类的方法,可以对父类的方法进行重写，重写后的方法可以满足子类的需求
++ 重写的方法必须和父类的方法具有相同的`方法名,参数列表和返回值类型`
++ 重写的方法`不能使用比父类更严格的访问权限`,可以使用比父类更宽松的访问权限
+
 ## 核心类
 
 ### System类
@@ -417,3 +432,44 @@ System类包含了一些有用的类字段和方法,它不能被实例化,提供
     - `public void close()` : 关闭此扫描器(关闭后不可再使用)
 
 ### Math类
+
++ 位于java.lang包中,不需要导入
++ 包含用于执行基本数学运算的方法,如初等指数,对数,平方根和三角函数
++ 随机数生成器的方法
+
+```java
+double d = Math.random(); //返回带正号的double值,大于等于0.0且小于1.0
+```
+
+### Arrays类
+
++ 位于java.util包中,需要导入
++ 提供了操作数组的方法
+    - `public static String toString(int[] a)` : 返回指定数组内容的字符串表示形式
+    - `public static int[] copyOf(int[] original, int newLength)` : 将指定数组的指定长度复制到一个新数组中
+    - `public static int binarySearch(int[] a, int key)` : 使用二分搜索法搜索指定数组的指定值
+    - `public static void sort(int[] a)` : 对指定的int类型数组按数字升序进行排序,unicode码升序
+    - `public static T[] sort(T[] a, Comparator<? super T> c)` : 对指定的对象数组按指定的Comparator进行排序
+        * 自然排序: 实现`Comparable<T>`接口,重写`compareTo(T o)`方法
+        * 自定义排序: 实现`Comparator<? super T>`接口,重写`compare(T o1, T o2)`方法
+
+### BigInteger类
+
++ 位于java.math包中,需要导入
++ 不可变的任意精度整数
++ 针对大整数的运算,不会丢失精度
++ 构造器
+    - `public BigInteger(String val)` : 通过字符串构造一个BigInteger对象
++ 常用方法
+    - 和Math类似,提供了大整数的运算方法
+    - 还提供了位运算方法 `and`, `andNot`, `or`, `xor`, `not`, `shiftLeft`, `shiftRight`
+
+### BigDecimal类
+
++ 位于java.math包中,需要导入
++ 不可变的,任意精度的有符号十进制数(包括整数和小数)
++ 构造器
+    - `public BigDecimal(String val)` : 通过字符串构造一个BigDecimal对象
++ 常用方法
+    - 和Math类似,提供了大整数的运算方法
+    - 还提供了位运算方法 `and`, `andNot`, `or`, `xor`, `not`, `shiftLeft`, `shiftRight`
