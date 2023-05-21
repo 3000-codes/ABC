@@ -520,6 +520,138 @@ public class SubClass extends SuperClass {
   - `对象名 instanceof 类名`
   - 如果对象是该类的实例,返回 true,否则返回 false
 
+### 内部类
+
+- 内部类: 在类的内部定义的类
+- 内部类的分类: 成员内部类,局部内部类,
+- 成员内部类：
+  - 实例成员内部类：
+    - 四种权限修饰符都可以修饰，推荐使用 private 或缺省
+    - 某些类不希望被其他类使用,可以将其定义在其他类的内部,使用 private 修饰,只能在当前类中使用
+    - 在外部类的内部实例化内部类: `内部类名 对象名 = new 内部类名();`
+    - 在外部类的外部实例化内部类: `外部类名.内部类名 对象名 = new 外部类名().new 内部类名();`
+    - 不能在内部类中定义静态成员
+    - 外部类可以直接访问内部类的成员,包括私有成员
+    - 内部类访问外部类的成员,需要使用`外部类名.this.成员名`,`外部类名.super.成员名`
+  - 静态成员内部类
+    - 只能使用 static 修饰
+    - 静态既可以声明实例成员,也可以声明静态成员
+    - 外部类可以直接访问内部类的成员,包括私有成员
+- 局部内部类：
+
+  - 普通局部内部类
+
+    - 定义`在方法中的类`,只能在当前方法中使用，使用时必须在其定义之后
+    - 只能使用 缺省 修饰
+    - 可以使用 final 或 abstract 修饰，不能使用 static 修饰
+    - 可以访问外部类的成员,包括私有成员
+    - 当内部类的实例变量或局部变量与外部方法的局部变量同名时,内部类访问无法方法的同名局部变量，
+    - 内部类无法访问外部方法的非 final 局部变量
+
+  - 匿名局部内部类
+    - 没有类名,只有类体
+    - `接口名 对象名 = new 接口名() {类体};`
+    - 调用抽象父类或者接口作为参数的方法时,可以使用匿名内部类作为参数
+    - 匿名内部类只能使用一次
+
+```java
+  // 接口
+  public interface IInterface {
+      void method();
+  }
+
+  public class Outer {
+      public void method() {
+        //匿名内部类
+          IInterface i = new IInterface() {
+              @Override
+              public void method() {
+                  System.out.println("匿名内部类");
+              }
+          };
+          i.method();
+      }
+  }
+
+ abstract class AbstractClass {
+     public abstract void method();
+ }
+
+  public class Outer {
+      public void method() {
+          //匿名内部类
+          AbstractClass a = new AbstractClass() {
+              @Override
+              public void method() {
+                  System.out.println("匿名内部类");
+              }
+          };
+          a.method();
+      }
+}
+```
+
+### 枚举类
+
+- 枚举类: 一种特殊的类,用于表示一个有限的几个对象
+- 枚举类的定义: `enum 枚举类名 {枚举值1(参数列表),枚举值2(参数列表),...}`
+- 枚举类的构造方法默认使用 private 修饰,不能使用 public 修饰
+- 使用枚举类: `枚举类名.枚举值`
+- 枚举类的常用方法
+  - `public String name()` : 获取枚举值的名称
+  - `public int ordinal()` : 获取枚举值的序号
+  - `public static 枚举类名 valueOf(String name)` : 将字符串转为枚举值
+  - `public 枚举类名[] values()` : 获取枚举类的所有枚举值
+- 枚举类的实现原理：枚举类的实现原理是使用类实现的,所以枚举类也是一种特殊的类,枚举值是枚举类的实例对象
+- 注意事项：
+  - 枚举类的所有枚举值必须在枚举类的第一行显示定义，使用`,`分隔
+  - 枚举值的名称必须是大写字母。
+  - 枚举类的构造方法默认使用 private 修饰,不能使用 public 修饰
+  - 枚举值无法被重新赋值，默认被`public static final`修饰
+  - 无法继承其他类,但可以实现接口
+  - 可以使用`==`比较两个枚举值是否相等
+  - 无法通过 new 实例化枚举类
+  - 构造器方法实际上是枚举值的构造方法
+  - 隐式继承于 java.lang.Enum 类，无法显式继承其他类，也不能被继承，但可以实现接口
+
+```java
+public enum Week {
+  MONDAY("星期一", 1), // new Week("星期一", 1)
+  TUESDAY("星期二", 2),
+  WEDNESDAY("星期三", 3),
+  THURSDAY("星期四", 4),
+  FRIDAY("星期五", 5),
+  SATURDAY("星期六", 6),
+  SUNDAY("星期日", 7),
+  ERROR("错误", -1);
+
+  private String name;
+  private int index;
+
+  private Week(String name, int index) {
+    this.name = name;
+    this.index = index;
+  }
+
+  public static Week getWeek(int index) {
+    for (Week week : Week.values()) {
+      if (week.index == index) {
+        return week;
+      }
+    }
+    return null;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public int getIndex() {
+    return index;
+  }
+}
+```
+
 ## 核心类
 
 ### System 类

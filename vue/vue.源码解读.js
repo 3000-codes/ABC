@@ -192,7 +192,7 @@ function generateCodeFrame(source, start = 0, end = source.length) {
   }
   return res.join("\n");
 }
-
+// 
 function normalizeStyle(value) {
   if (isArray(value)) {
     const res = {};
@@ -212,9 +212,10 @@ function normalizeStyle(value) {
     return value;
   }
 }
-const listDelimiterRE = /;(?![^(]*\))/g;
-const propertyDelimiterRE = /:([^]+)/;
-const styleCommentRE = new RegExp("\\/\\*.*?\\*\\/", "gs");
+const listDelimiterRE = /;(?![^(]*\))/g;// 匹配分号
+const propertyDelimiterRE = /:([^]+)/;// 匹配冒号
+const styleCommentRE = new RegExp("\\/\\*.*?\\*\\/", "gs"); // 匹配注释
+// 解析字符串样式
 function parseStringStyle(cssText) {
   const ret = {};
   cssText.replace(styleCommentRE, "").split(listDelimiterRE).forEach((item) => {
