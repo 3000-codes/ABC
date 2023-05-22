@@ -652,6 +652,31 @@ public enum Week {
 }
 ```
 
+### 包装类
+
+- 基本数据类型与包装类的对应关系
+
+  | 基本数据类型 | 包装类    |
+  | ------------ | --------- |
+  | byte         | Byte      |
+  | short        | Short     |
+  | int          | Integer   |
+  | long         | Long      |
+  | float        | Float     |
+  | double       | Double    |
+  | char         | Character |
+  | boolean      | Boolean   |
+
+- 基本数据类型与包装类的转换
+  - 自动装箱：基本数据类型 -> 包装类
+  - 自动拆箱：包装类 -> 基本数据类型
+  - JDK 1.5 之前需要手动装箱和拆箱
+- 基本数据类型、包装类、String 类之间的相互转换
+  - 基本数据类型 -> String 类型：基本数据类型的值 + ""
+  - String 类型 -> 基本数据类型：使用包装类的静态方法 parseXXX("数值类型的字符串")
+  - String 类型 -> 包装类：使用包装类的构造器
+  - 包装类 -> String 类型：包装类的对象 + ""
+
 ## 核心类
 
 ### System 类
@@ -747,3 +772,66 @@ double d = Math.random(); //返回带正号的double值,大于等于0.0且小于
   - `public boolean equals(Object obj)` : 指示其他某个对象是否与此对象"相等"
     - `==` : 比较引用类型变量的地址值是否相同,基本类型变量比较值是否相同
     - `equals`: 比较**引用类型**变量的地址值是否相同,如果重写了 equals 方法,比较的是重写后的内容
+
+### String 类
+
+- 位于 java.lang 包中,不需要导入
+- 代表字符串,是一个不可变的字符序列
+- 底层是一个数组（jdk8：`char[]`，jdk9：`byte[]`）且被`final`修饰,不能改变
+- 构造器
+  - `public String()` : 初始化一个新创建的 String 对象,表示**空字符**序列
+  - `public String(char[] value)` : 通过字符数组来构造新的字符串对象
+  - `public String(byte[] bytes)` : 通过字节数组来构造新的字符串对象
+  - `public String(char[] value, int offset, int count)` : 通过字符数组的一部分来构造新的字符串对象
+  - `public String(byte[] bytes, int offset, int length)` : 通过字节数组的一部分来构造新的字符串对象
+  - `public String(String original)` : 通过字符串来构造新的字符串对象
+  - `public String(StringBuffer buffer)` : 通过字符串缓冲区来构造新的字符串对象
+  - `public String(StringBuilder builder)` : 通过字符串构建器来构造新的字符串对象
+- 常用方法
+
+  - 判断
+    - 比较
+      - `equals`比较的是内容
+      - `==`比较的是地址值
+      - `ignoreCase`忽略大小写,再比较内容
+    - 判断是否包含
+      - `contains`判断是否包含
+      - `startsWith`判断是否以某个字符串开头
+      - `endsWith`判断是否以某个字符串结尾
+    - 判断字符串是否为空（isEmpty）
+  - 获取
+    - 获取字符串的长度（length）
+    - 获取指定索引位置的字符（charAt）
+    - 获取指定索引位置的字符的 ASCII 码值（codePointAt）
+    - 获取指定字符的索引位置
+      - indexOf 从前往后找
+      - lastIndexOf 从后往前找
+      - 找不到返回-1
+    - 截取字符串
+      - substring(int beginIndex),从指定索引位置开始截取到末尾
+      - substring(int beginIndex, int endIndex),从指定索引位置开始截取到指定索引位置结束
+    - 替换字符串（replace(char oldChar, char newChar)、replaceAll(String regex, String replacement)、replaceFirst(String regex, String replacement)）
+  - 转换
+    - 转换大小写
+      - toUpperCase
+      - toLowerCase
+    - 转换为字符数组
+      - toCharArray
+    - 转换为字节数组
+      - getBytes
+  - 切割
+    - split(String regex): 按照参数的规则,将字符串切割成若干部分
+
+- 创建方式：
+  - 字面量创建
+  - 构造器创建
+
+#### StringBuffer 类 与 StringBuilder 类（274）
+
+- 相同点：
+  - 都是继承于 AbstractStringBuilder 类
+  - 都是可变的字符序列
+  - 拥有一样的方法，功能有差异
+- 不同点：
+  - StringBuffer 的方法都被 synchronized 修饰，是线程安全的，适用于多线程，效率低
+  - StringBuilder 的方法是线程不安全的，适用于单线程，效率高，一般使用这个；如果在多线程中使用，需要手动添加线程安全
