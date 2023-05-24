@@ -835,3 +835,177 @@ double d = Math.random(); //返回带正号的double值,大于等于0.0且小于
 - 不同点：
   - StringBuffer 的方法都被 synchronized 修饰，是线程安全的，适用于多线程，效率低
   - StringBuilder 的方法是线程不安全的，适用于单线程，效率高，一般使用这个；如果在多线程中使用，需要手动添加线程安全
+
+## 异常和异常处理
+
+### Throwable 类
+
+- Throwable 类是 Java 语言中所有错误或异常的超类
+- 错误(Error)：程序无法处理的错误，表示运行应用程序中较严重问题,如系统崩溃、虚拟机错误、内存空间不足、栈溢出等,无法恢复或不可能捕获的情况
+- 异常(Exception)：程序本身可以处理的异常,如空指针、数组下标越界等,可以使用 try-catch-finally 语句进行捕获,进行相应的处理
+- 构造器
+  - `public Throwable()` : 构造一个新的 Throwable 对象
+  - `public Throwable(String message)` : 构造一个新的 Throwable 对象并带有指定的消息
+  - `public Throwable(String message, Throwable cause)` : 构造一个新的 Throwable 对象并带有指定的消息和原因
+  - `public Throwable(Throwable cause)` : 构造一个新的 Throwable 对象并带有指定的原因
+- 常用方法
+
+  - `public String getMessage()` : 返回关于发生的异常的详细信息
+  - `public String toString()` : 返回异常发生时的简要描述
+  - `public void printStackTrace()` : JVM 打印异常对象,默认此方法,打印的异常信息是最全面的
+
+```java
+
+new Throwable("异常信息前缀").printStackTrace();
+```
+
+### Exception 类(异常)
+
+- 在编译时期出现的异常,叫做编译期异常,如：IOException、ClassNotFoundException、NoSuchMethodException,必须手动处理,否则程序就会报错,无法通过编译
+- 在运行时期出现的异常,叫做运行期异常,如：NullPointerException、ArrayIndexOutOfBoundsException、ClassCastException,可以不处理或处理,如果不处理,默认交给 JVM 处理(中断程序,打印异常信息)
+- 无论是编译期异常还是运行期异常,Java 虚拟机都会终止运行,为了保证程序的健壮性,需要对出现的异常进行处理
+
+#### 异常处理方式
+
+- 异常声明处理: 方法内部不进行异常处理,交给调用者处理,调用者也不处理,一直抛出,最终交给 JVM 处理
+  - throw 关键字: 用在方法内部,跟的是异常类对象,可以抛出指定的异常对象
+  - throws 关键字: 用在方法声明后面,跟的是异常类名,可以跟多个异常类名,用逗号隔开,表示抛出异常
+  - `修饰符 返回值类型 方法名(参数列表) throws AAAException,BBBException...{...}`
+  - 在方法声明时抛出的异常类间如果存在继承关系:(1)没有先后顺序,(2)直接声明父类异常即可
+- 异常捕获处理: 方法内部进行异常处理,捕获到异常后,进行处理,不再抛出
+  - try-catch: try-catch 的作用是捕获异常,当 try 中的代码出现异常时,会把异常对象传递给 catch,然后执行 catch 中的代码
+  - try-catch-finally: finally 中的代码一定会执行,无论 try 中是否出现异常,一般用于资源释放
+  - try-catch-catch: 可以有多个 catch,用于捕获多种类型的异常
+  - jdk7.0 新特性: try-catch 的增强写法,可以在 try 后面增加一个 () ,在 () 中定义流对象,那么这个流对象的作用域就在 try 中有效,try 中的代码执行完毕,会自动把流对象释放,不用写 finally
+    - `try(定义流对象;定义流对象...){...}catch(异常类名 变量名){...}`
+  - 捕获异常时,如果有子父类关系,子类异常必须写在上面,父类异常写在下面,否则会报错,或者只写父类异常
+
+#### 自定义异常类
+
+- 自定义异常类必须继承 Exception 类或者 RuntimeException 类
+- 至少提供两个构造方法,一个无参构造方法,一个带有 String 类型参数的构造方法
+
+```java
+public class MyException extends Exception {
+    public MyException() {
+    }
+
+    public MyException(String message) {
+        super(message);
+    }
+}
+```
+
+### 日期时间类
+
+- 第一代(JDK1.0)：Date , DateFormat , SimpleDateFormat
+- 第二代(JDK1.1)：Calendar , GregorianCalendar
+- 第三代(JDK1.8): LocalDate , LocalTime , LocalDateTime , DateTimeFormatter
+
+#### Date 类
+
+- Date 类表示特定的瞬间，精确到毫秒
+- 构造器
+  - `public Date()` : 分配 Date 对象并初始化此对象,以表示分配它的时间（精确到毫秒）
+  - `public Date(long date)` : 分配 Date 对象并初始化此对象,以表示自从标准基准时间（称为“历元（epoch）”,即 1970 年 1 月 1 日 00:00:00 GMT）以来的指定毫秒数
+- 常用方法
+  - `public long getTime()` : 把日期对象转换成对应的时间毫秒值
+  - `public void setTime(long time)` : 使用自 1970 年 1 月 1 日以来的毫秒数设置日期对象
+
+#### 第一代的时间格式化和解析
+
+- 格式化:Date->字符串:
+- 解析:字符串->Date 对象
+
+##### DateFormat 类
+
+- 一个抽象类
+- 常用方法
+  - `public final string format(Date date)`:按照指定的模式,把 Date 对象转换为字符串
+  - `public Date parse(String source)`:解析字符串成一个 Date 对象
+
+##### SimpleDateFormat
+
+- 针对 DateFormat 类的实现类,可以使用指定的模式字符串来创建 SimpleDateFormat 对象,模式字符串区分大小写
+- 构造器
+  - `public SimpleDateFormat(String pattern)` : 用给定的模式和默认语言环境的日期格式符号构造 SimpleDateFormat
+- 常用方法
+  - `public String format(Date date)` : 将 Date 格式化为日期/时间字符串
+  - `public Date parse(String source)` : 从给定字符串的开始解析文本以生成日期
+
+```java
+
+Date date = new Date();
+SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+String format = sdf.format(date);// 2020-03-24 15:46:24
+System.out.println(format);
+
+String str = "2020-03-24 15:46:24";
+Date parse = sdf.parse(str);
+System.out.println(parse); // Tue Mar 24 15:46:24 CST 2020
+```
+
+#### Calendar 类
+
+- Calendar 类是一个抽象类,它为特定瞬间与一组诸如 YEAR、MONTH、DAY_OF_MONTH、HOUR 等日历字段之间的转换提供了一些方法,并为操作日历字段（例如获得下星期的日期）提供了一些方法
+- Calendar 类无法直接创建对象使用,里边有一个静态方法叫 getInstance(),该方法返回了 Calendar 类的子类对象
+- 常用方法
+  - `public int get(int field)` : 返回给定日历字段的值
+  - `public void set(int field, int value)` : 将给定的日历字段设置为给定值
+  - `public abstract void add(int field, int amount)` : 根据日历的规则,为给定的日历字段添加或减去指定的时间量
+  - `public Date getTime()` : 返回一个表示此 Calendar 时间值（从历元到现在的毫秒偏移量）的 Date 对象
+  - `public final void setTimeZone(TimeZone value)` : 为此 Calendar 对象设置时区
+
+```java
+Calendar c = Calendar.getInstance();
+int year = c.get(Calendar.YEAR);
+int month = c.get(Calendar.MONTH);// 一月是0
+int date = c.get(Calendar.DATE);
+System.out.println(year + "年" + (month + 1) + "月" + date + "日"); // 2020年3月24日
+```
+
+#### LocalDateTime 类
+
+- 日期时间类,表示一个日期时间对象
+- 构造器 :私有化
+- 常用方法
+  - `LocalDateTime.now()` : 静态方法,返回当前时间
+  - `public int getYear()` : 获取年份
+  - `public int getMonthValue()` : 获取月份
+  - `public int getDayOfMonth()` : 获取日
+  - `public int getHour()` : 获取小时
+  - `public int getMinute()` : 获取分钟
+  - `public int getSecond()` : 获取秒
+  - `public String format(DateTimeFormatter formatter)` : 按照指定的格式,把日期时间格式化为字符串
+  - `public LocalDateTime parse(CharSequence text, DateTimeFormatter formatter)` : 按照指定的格式,把字符串解析为日期时间
+
+```java
+LocalDateTime ldt = LocalDateTime.now();
+int year = ldt.getYear();
+int month = ldt.getMonthValue();
+int day = ldt.getDayOfMonth();
+int hour = ldt.getHour();
+int minute = ldt.getMinute();
+int second = ldt.getSecond();
+System.out.println(year + "年" + month + "月" + day + "日" + hour + "时" + minute + "分" + second + "秒"); // 2020年3月24日15时56分24秒
+```
+
+#### DateTimeFormatter 类
+
+- 针对第三代的时间格式化和解析
+- 构造器:私有化
+- 常用方法
+  - `public static DateTimeFormatter ofPattern(String pattern)` : 使用指定的模式创建格式化程序
+  - `public String format(TemporalAccessor temporal)` : 使用此格式化程序格式化日期时间对象
+  - `public <T> T parse(CharSequence text, TemporalQuery<T> query)` : 使用此格式解析文本以生成日期时间对象
+
+```java
+LocalDateTime ldt = LocalDateTime.now();
+DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH:mm:ss");
+String format = dtf.format(ldt);
+System.out.println(format); // 2020年03月24日 16:00:00
+
+String str = "2020年03月24日 16:00:00";
+LocalDateTime parse = ldt.parse(str, dtf);
+System.out.println(parse); // 2020-03-24T16:00
+```
