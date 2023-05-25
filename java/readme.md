@@ -836,66 +836,6 @@ double d = Math.random(); //返回带正号的double值,大于等于0.0且小于
   - StringBuffer 的方法都被 synchronized 修饰，是线程安全的，适用于多线程，效率低
   - StringBuilder 的方法是线程不安全的，适用于单线程，效率高，一般使用这个；如果在多线程中使用，需要手动添加线程安全
 
-## 异常和异常处理
-
-### Throwable 类
-
-- Throwable 类是 Java 语言中所有错误或异常的超类
-- 错误(Error)：程序无法处理的错误，表示运行应用程序中较严重问题,如系统崩溃、虚拟机错误、内存空间不足、栈溢出等,无法恢复或不可能捕获的情况
-- 异常(Exception)：程序本身可以处理的异常,如空指针、数组下标越界等,可以使用 try-catch-finally 语句进行捕获,进行相应的处理
-- 构造器
-  - `public Throwable()` : 构造一个新的 Throwable 对象
-  - `public Throwable(String message)` : 构造一个新的 Throwable 对象并带有指定的消息
-  - `public Throwable(String message, Throwable cause)` : 构造一个新的 Throwable 对象并带有指定的消息和原因
-  - `public Throwable(Throwable cause)` : 构造一个新的 Throwable 对象并带有指定的原因
-- 常用方法
-
-  - `public String getMessage()` : 返回关于发生的异常的详细信息
-  - `public String toString()` : 返回异常发生时的简要描述
-  - `public void printStackTrace()` : JVM 打印异常对象,默认此方法,打印的异常信息是最全面的
-
-```java
-
-new Throwable("异常信息前缀").printStackTrace();
-```
-
-### Exception 类(异常)
-
-- 在编译时期出现的异常,叫做编译期异常,如：IOException、ClassNotFoundException、NoSuchMethodException,必须手动处理,否则程序就会报错,无法通过编译
-- 在运行时期出现的异常,叫做运行期异常,如：NullPointerException、ArrayIndexOutOfBoundsException、ClassCastException,可以不处理或处理,如果不处理,默认交给 JVM 处理(中断程序,打印异常信息)
-- 无论是编译期异常还是运行期异常,Java 虚拟机都会终止运行,为了保证程序的健壮性,需要对出现的异常进行处理
-
-#### 异常处理方式
-
-- 异常声明处理: 方法内部不进行异常处理,交给调用者处理,调用者也不处理,一直抛出,最终交给 JVM 处理
-  - throw 关键字: 用在方法内部,跟的是异常类对象,可以抛出指定的异常对象
-  - throws 关键字: 用在方法声明后面,跟的是异常类名,可以跟多个异常类名,用逗号隔开,表示抛出异常
-  - `修饰符 返回值类型 方法名(参数列表) throws AAAException,BBBException...{...}`
-  - 在方法声明时抛出的异常类间如果存在继承关系:(1)没有先后顺序,(2)直接声明父类异常即可
-- 异常捕获处理: 方法内部进行异常处理,捕获到异常后,进行处理,不再抛出
-  - try-catch: try-catch 的作用是捕获异常,当 try 中的代码出现异常时,会把异常对象传递给 catch,然后执行 catch 中的代码
-  - try-catch-finally: finally 中的代码一定会执行,无论 try 中是否出现异常,一般用于资源释放
-  - try-catch-catch: 可以有多个 catch,用于捕获多种类型的异常
-  - jdk7.0 新特性: try-catch 的增强写法,可以在 try 后面增加一个 () ,在 () 中定义流对象,那么这个流对象的作用域就在 try 中有效,try 中的代码执行完毕,会自动把流对象释放,不用写 finally
-    - `try(定义流对象;定义流对象...){...}catch(异常类名 变量名){...}`
-  - 捕获异常时,如果有子父类关系,子类异常必须写在上面,父类异常写在下面,否则会报错,或者只写父类异常
-
-#### 自定义异常类
-
-- 自定义异常类必须继承 Exception 类或者 RuntimeException 类
-- 至少提供两个构造方法,一个无参构造方法,一个带有 String 类型参数的构造方法
-
-```java
-public class MyException extends Exception {
-    public MyException() {
-    }
-
-    public MyException(String message) {
-        super(message);
-    }
-}
-```
-
 ### 日期时间类
 
 - 第一代(JDK1.0)：Date , DateFormat , SimpleDateFormat
@@ -1008,4 +948,238 @@ System.out.println(format); // 2020年03月24日 16:00:00
 String str = "2020年03月24日 16:00:00";
 LocalDateTime parse = ldt.parse(str, dtf);
 System.out.println(parse); // 2020-03-24T16:00
+```
+
+### 集合
+
+数组和集合的区别
+
+- 数组:存储的是同一类型的元素,长度是固定的,不能进行增删
+- 集合:存储的是同一类型的元素,长度是可变的,可以进行增删
+- 数组的元素可以是基本数据类型,也可以是引用数据类型
+- 集合的元素只能是引用数据类型
+
+集合框架体系结构
+
+- 单例集合框架: 存储元素以'个'为单位
+  - Collection 接口
+    - List 接口
+      - ArrayList 类
+      - LinkedList 类
+      - Vector 类
+    - Set 接口
+      - HashSet 类
+      - LinkedHashSet 类
+      - TreeSet 类
+- 双列集合框架: 存储元素以'对'为单位
+  - Map 接口
+    - HashMap 类
+    - LinkedHashMap 类
+    - TreeMap 类
+    - Hashtable 类
+    - Properties 类
+
+#### Iterator 接口
+
+- Iterator 接口是单列集合框架中的顶层接口,里边定义了迭代器的常用方法
+- 一个迭代器对象都只能遍历一次集合,如果需要再次遍历,需要重新获取迭代器对象
+- 迭代过程中,集合不推荐进行修改操作,否则会抛出异常
+- 常用方法
+  - `public E next()` : 返回迭代的下一个元素,如果没有元素,则抛出异常
+  - `public boolean hasNext()` : 如果仍有元素可以迭代,则返回 true
+  - `public void remove()` : 从迭代器指向的 collection 中移除迭代器返回的最后一个元素（可选操作）
+
+#### 泛型
+
+- 泛型是一种广泛的类型,可以在类或方法中预支地使用未知的类型
+- 泛型的好处
+  - 提高安全性(将运行期的错误转换到编译期)
+  - 省去强转的麻烦
+- 泛型的使用
+  - 定义类时,通过一个标识表示类中某个属性的类型或某个方法的返回值及参数类型
+  - 这个标识只能是引用类型
+  - 在使用时,确定泛型的类型
+- 泛型通配符<?>
+  - 任意类型,如果没有明确,那么就是 Object 类型
+  - 限定类型的上限
+    - 格式: `? extends 类型`
+    - 代表使用的泛型只能是类型的子类/本身
+  - 限定类型的下限
+    - 格式: `? super 类型`
+    - 代表使用的泛型只能是类型的父类/本身
+
+```java
+public class GenericClass<E> {
+    private E name;
+
+    public E getName() {
+        return name;
+    }
+
+    public void setName(E name) {
+        this.name = name;
+    }
+}
+
+GenericClass<String> gc = new GenericClass<>();
+
+```
+
+#### Collection 接口
+
+- Collection 是集合的顶层接口,它定义了集合框架的通用功能(集合中存储的单个对象的操作)
+- 常用方法
+
+  - `public boolean add(E e)` : 把给定的对象添加到当前集合中
+  - `public void clear()` : 清空集合中所有的元素
+  - `public boolean remove(E e)` : 把给定的对象在当前集合中删除
+  - `public boolean contains(E e)` : 判断当前集合中是否包含给定的对象
+  - `public boolean isEmpty()` : 判断当前集合是否为空
+  - `public int size()` : 返回集合中元素的个数
+  - `public Object[] toArray()` : 把集合中的元素,存储到数组中
+  - `public Iterator<E> iterator()` : 获取迭代器,用于遍历集合中的元素
+  - `public Stream<E> stream()` : 获取流对象,用于操作集合中的元素
+  - `public void forEach(Consumer<? super E> action)` : 遍历集合中的元素
+
+  ```java
+  Collection<String> coll = new ArrayList<>();
+  coll.add("张三");
+  coll.add("李四");
+  coll.add("王五");
+  coll.add("赵六");
+
+  coll.forEach(new Consumer<String>() { // 匿名内部类
+      @Override
+      public void accept(String s) {
+          System.out.println(s);
+      }
+  });
+
+  coll.forEach(s -> System.out.println(s)); // Lambda 表达式
+  coll.forEach(System.out::println); // 方法引用
+
+  // 获取stream流
+  Stream<String> stream = coll.stream();
+  stream.forEach(System.out::println);
+  ```
+
+#### List 接口
+
+- List 接口继承 Collection 接口,是单列集合的一个重要分支,习惯性地会把实现了 List 接口的对象称为 List 集合
+- 由 List 接口实现的类的特点:有序、可重复
+- 提供了四种索引的实现方式:数组,链表,队列,栈
+- 拥有特殊迭代器`ListIterator`,可以实现逆向遍历和添加元素
+- 常用方法
+  - `public void add(int index, E element)` : 将指定的元素,添加到该集合中的指定位置上
+  - `public E get(int index)` : 返回集合中指定位置的元素
+  - `public E set(int index, E element)` : 用指定元素替换集合中指定位置的元素,返回值的更新前的元素
+  - `public E remove(int index)` : 移除列表中指定位置的元素,返回的是被移除的元素
+  - `public List<E> subList(int fromIndex, int toIndex)` : 返回从 fromIndex 到 toIndex 位置的子集合
+  - `public int indexOf(Object o)` : 返回集合中首次出现的指定元素的索引,如果不存在,则返回 -1
+  - `public int lastIndexOf(Object o)` : 返回集合中最后一次出现的指定元素的索引,如果不存在,则返回 -1
+  - `public ListIterator<E> listIterator()` : 返回列表中元素的列表迭代器(按适当顺序)
+- 六种遍历方式
+  - 普通 for 循环
+  - 增强 for 循环
+  - forEach 方法
+  - Stream 流
+  - 迭代器
+  - 列表迭代器
+- 数组结构:底层使用数组结构,查询快,增删慢
+- 链表结构:底层使用类的实现,不断套娃,查询慢,增删快
+  - 单向链表:至少含有 2 个属性(当前节点的值和下一个节点的地址)
+  - 双向链表:至少含有 3 个属性(当前节点的值,上一个节点的地址和下一个节点的地址)
+
+#### ArrayList 类
+
+- ArrayList 是 List 接口的一个实现类,适用于频繁查询,遍历操作,不适用于频繁增删操作
+- 特点:有索引,有序,可重复,可以存储 null 值(遍历时要注意空指针异常),线程不安全,效率高
+- 构造方法
+  - `public ArrayList()` : 容量在 jdk1.8 之前默认为 10,之后为 0
+  - `public ArrayList(int initialCapacity)` : 构造一个指定初始容量的空列表
+  - `public ArrayList(Collection<? extends E> c)` : 构造一个包含指定集合的元素的列表,按照集合的迭代器返回的顺序排列
+- 底层数组扩容规则:
+  - 首次添加元素:创建一个长度为 `10` 的数组
+  - 再次添加元素:创建一个长度为`原数组长度 + 原数组长度 / 2` 的数组
+- JDK1.8 之后的变化:
+  - 无参构造器初始容量不同:1.8 之前为 10,之后为 0
+  - 扩容机制不同:1.8 之前为`原数组长度 + 原数组长度 / 2 +1 `,之后为 底层数组的扩容规则(上面写了)
+
+#### Set 接口
+
+- Set 接口继承 Collection 接口,是单列集合的一个重要分支,习惯性地会把实现了 Set 接口的对象称为 Set 集合
+- 由 Set 接口实现的类的特点:无序、不可重复
+
+#### Map 接口
+
+- Map 接口是双列集合的顶层接口,它定义了双列集合的常用功能
+
+##### HashMap 类
+
+- HashMap 是 Map 接口的一个实现类,底层是哈希表,查询速度快
+- 特点
+  - 无序
+  - 键不可重复,值可重复
+  - 线程不安全,效率高
+
+##### LinkedHashMap 类
+
+## 异常和异常处理
+
+### Throwable 类
+
+- Throwable 类是 Java 语言中所有错误或异常的超类
+- 错误(Error)：程序无法处理的错误，表示运行应用程序中较严重问题,如系统崩溃、虚拟机错误、内存空间不足、栈溢出等,无法恢复或不可能捕获的情况
+- 异常(Exception)：程序本身可以处理的异常,如空指针、数组下标越界等,可以使用 try-catch-finally 语句进行捕获,进行相应的处理
+- 构造器
+  - `public Throwable()` : 构造一个新的 Throwable 对象
+  - `public Throwable(String message)` : 构造一个新的 Throwable 对象并带有指定的消息
+  - `public Throwable(String message, Throwable cause)` : 构造一个新的 Throwable 对象并带有指定的消息和原因
+  - `public Throwable(Throwable cause)` : 构造一个新的 Throwable 对象并带有指定的原因
+- 常用方法
+
+  - `public String getMessage()` : 返回关于发生的异常的详细信息
+  - `public String toString()` : 返回异常发生时的简要描述
+  - `public void printStackTrace()` : JVM 打印异常对象,默认此方法,打印的异常信息是最全面的
+
+```java
+
+new Throwable("异常信息前缀").printStackTrace();
+```
+
+### Exception 类(异常)
+
+- 在编译时期出现的异常,叫做编译期异常,如：IOException、ClassNotFoundException、NoSuchMethodException,必须手动处理,否则程序就会报错,无法通过编译
+- 在运行时期出现的异常,叫做运行期异常,如：NullPointerException、ArrayIndexOutOfBoundsException、ClassCastException,可以不处理或处理,如果不处理,默认交给 JVM 处理(中断程序,打印异常信息)
+- 无论是编译期异常还是运行期异常,Java 虚拟机都会终止运行,为了保证程序的健壮性,需要对出现的异常进行处理
+
+#### 异常处理方式
+
+- 异常声明处理: 方法内部不进行异常处理,交给调用者处理,调用者也不处理,一直抛出,最终交给 JVM 处理
+  - throw 关键字: 用在方法内部,跟的是异常类对象,可以抛出指定的异常对象
+  - throws 关键字: 用在方法声明后面,跟的是异常类名,可以跟多个异常类名,用逗号隔开,表示抛出异常
+  - `修饰符 返回值类型 方法名(参数列表) throws AAAException,BBBException...{...}`
+  - 在方法声明时抛出的异常类间如果存在继承关系:(1)没有先后顺序,(2)直接声明父类异常即可
+- 异常捕获处理: 方法内部进行异常处理,捕获到异常后,进行处理,不再抛出
+  - try-catch: try-catch 的作用是捕获异常,当 try 中的代码出现异常时,会把异常对象传递给 catch,然后执行 catch 中的代码
+  - try-catch-finally: finally 中的代码一定会执行,无论 try 中是否出现异常,一般用于资源释放
+  - try-catch-catch: 可以有多个 catch,用于捕获多种类型的异常
+  - jdk7.0 新特性: try-catch 的增强写法,可以在 try 后面增加一个 () ,在 () 中定义流对象,那么这个流对象的作用域就在 try 中有效,try 中的代码执行完毕,会自动把流对象释放,不用写 finally
+    - `try(定义流对象;定义流对象...){...}catch(异常类名 变量名){...}`
+  - 捕获异常时,如果有子父类关系,子类异常必须写在上面,父类异常写在下面,否则会报错,或者只写父类异常
+
+#### 自定义异常类
+
+- 自定义异常类必须继承 Exception 类或者 RuntimeException 类
+- 至少提供两个构造方法,一个无参构造方法,一个带有 String 类型参数的构造方法
+
+```java
+public class MyException extends Exception {
+    public MyException() {
+    }
+
+    public MyException(String message) {
+        super(message);
+    }
+}
 ```
