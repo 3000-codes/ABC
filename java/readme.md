@@ -1105,6 +1105,27 @@ GenericClass<String> gc = new GenericClass<>();
   - 无参构造器初始容量不同:1.8 之前为 10,之后为 0
   - 扩容机制不同:1.8 之前为`原数组长度 + 原数组长度 / 2 +1 `,之后为 底层数组的扩容规则(上面写了)
 
+#### Vector 类
+
+- Vector 是 List 接口的一个实现类
+- 特点:有索引,有序,可重复,可以存储 null 值(遍历时要注意空指针异常),线程安全,适用于多线程环境,如果在单线程环境下效率较低
+- 其他和 ArrayList 类似
+
+#### LinkedList 类
+
+- LinkedList 是 底层数据结构是"双向链表"的 List 集合
+- 特点:有索引,有序,可重复,可以存储 null 值(遍历时要注意空指针异常),线程不安全,效率高
+- 构造器
+  - `public LinkedList()` : 构造一个空列表
+- 常用方法
+  - 其他和 List 类似
+  - `public void addFirst(E e)` : 将指定元素插入此列表的开头
+  - `public void addLast(E e)` : 将指定元素添加到此列表的结尾
+  - `public E getFirst()` : 返回此列表的第一个元素
+  - `public E getLast()` : 返回此列表的最后一个元素
+  - `public E removeFirst()` : 移除并返回此列表的第一个元素
+  - `public E removeLast()` : 移除并返回此列表的最后一个元素
+
 #### Set 接口
 
 - Set 接口继承 Collection 接口,是单列集合的一个重要分支,习惯性地会把实现了 Set 接口的对象称为 Set 集合
