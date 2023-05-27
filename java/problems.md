@@ -119,3 +119,24 @@ System.out.println(i3 == i4); // false
 System.out.println(i1 == i5); // true
 System.out.println(i7 == i8); // false Integer支持-128~127之间的数，会从常量池中取，超过这个范围，会new一个对象
 ```
+
+### HashSet如何保证元素唯一性
+
+- HashSet 底层是 HashMap，HashSet 的 add 方法，实际上是调用了 HashMap 的 put 方法
+- 获取元素的 hashcode，然后计算 hash 值（hashcode 的高 16 位异或低 16 位），然后与`table.length-1`进行与运算，得到数组下标
+- 如果数组下标对应的位置没有元素（null），封装成链表对象，添加到数组下标对应的位置
+- 如果数组下标对应的位置有元素，将元素的hash值与链表对象的每个元素的hash值进行比较，如果发生碰撞，继续比较 equals 方法，如果 equals 方法返回 true，说明元素重复，不添加，如果 equals 方法返回 false，说明元素不重复，添加到链表的最后
+
+```java
+public boolean add(E e) {
+    return map.put(e, PRESENT)==null;
+}
+```
+
+### HashSet的重写hashCode方法计算中间量为什么是31
+
+- 不易过大：增加计算的时间
+- 不易过小：容易发生碰撞
+- 31 是一个质数，质数的特点是只能被 1 和自己整除，这样可以尽可能的避免碰撞
+- 泊松分布，29 和 31 的碰撞率最低
+- 31 可以被 JVM 优化，31 * i = (i << 5) - i，这样可以提高运算效率

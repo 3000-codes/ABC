@@ -1118,6 +1118,7 @@ GenericClass<String> gc = new GenericClass<>();
 - 构造器
   - `public LinkedList()` : 构造一个空列表
 - 常用方法
+
   - 其他和 List 类似
   - `public void addFirst(E e)` : 将指定元素插入此列表的开头
   - `public void addLast(E e)` : 将指定元素添加到此列表的结尾
@@ -1128,8 +1129,25 @@ GenericClass<String> gc = new GenericClass<>();
 
 #### Set 接口
 
-- Set 接口继承 Collection 接口,是单列集合的一个重要分支,习惯性地会把实现了 Set 接口的对象称为 Set 集合
-- 由 Set 接口实现的类的特点:无序、不可重复
+- 由 Set 接口实现的类的特点
+  - 可以有序,也可以无序
+  - 不可重复
+  - 没有索引
+  - 遍历方式：for，增强 for，迭代器，Stream 流
+
+#### HashSet 类
+
+- HashSet 底层封装了一个 HashMap,使用 HashMap 的 key 来存储元素,保证元素的唯一性
+  - 无序的，不保证存储和取出的顺序一致
+  - 不可重复
+  - 没有索引
+  - 可以使用 null 值，遍历时要注意空指针异常
+  - 元素顺序和底层数组长度有关，一旦长度变化，元素位置可能会发生变化
+  - 线程不安全，效率高，适用于单线程环境，如果在多线程环境下需要手动添加线程安全
+- 构造器
+  - `public HashSet()` : 构造一个新的空集合,底层是一个 HashMap，初始容量为 16,负载因子为 0.75，当元素个数超过 16 * 0.75（默认容量） 时，就会进行扩容
+  - `public HashSet(Collection<? extends E> c)` : 构造一个包含指定集合的元素的集合,按照集合的迭代器返回的顺序排列
+- 常见方法见Collection接口
 
 #### Map 接口
 
@@ -1138,6 +1156,9 @@ GenericClass<String> gc = new GenericClass<>();
 ##### HashMap 类
 
 - HashMap 是 Map 接口的一个实现类,底层是哈希表,查询速度快
+- 哈希表结构：
+  - jdk7之前：链表对象的数组
+  - jdk8之后：链表或红黑树对象的数组
 - 特点
   - 无序
   - 键不可重复,值可重复
