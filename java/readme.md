@@ -1529,3 +1529,301 @@ try (FileWriter fw = new FileWriter("a.txt")) {
     e.printStackTrace();
 }
 ```
+
+#### 文件缓冲流
+
+- 缓冲流可以提高读写效率
+- 缓冲流内部有一个缓冲区,默认大小为 8192 字节
+- constructor
+  - `public BufferedInputStream(InputStream in)` : 创建一个新的缓冲输入流
+  - `public BufferedInputStream(InputStream in,int size)` : 创建一个新的缓冲输入流,并指定缓冲区大小
+  - `public BufferedOutputStream(OutputStream out)` : 创建一个新的缓冲输出流
+  - `public BufferedOutputStream(OutputStream out,int size)` : 创建一个新的缓冲输出流,并指定缓冲区大小
+
+#### 对象序列化流
+
+- 对象序列化流可以将对象以字节的形式写入文件中,也可以将字节反序列化为对象
+  - 对象必须实现 Serializable 接口
+  - transient 关键字可以阻止对象序列化
+- constructor
+  - `public ObjectOutputStream(OutputStream out)` : 创建一个写入指定的 OutputStream 的 ObjectOutputStream
+  - `public ObjectInputStream(InputStream in)` : 创建从指定 InputStream 读取的 ObjectInputStream
+- methods
+  - `public final void writeObject(Object obj)` : 将指定的对象写入 ObjectOutputStream
+  - `public final Object readObject()` : 从 ObjectInputStream 读取对象
+
+```java
+try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("a.txt"))) {
+    oos.writeObject(new Person("张三", 18));
+} catch (IOException e) {
+    e.printStackTrace();
+}
+
+try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("a.txt"))) {
+    Object o = ois.readObject();
+    System.out.println(o);
+} catch (IOException | ClassNotFoundException e) {
+    e.printStackTrace();
+}
+```
+
+#### 打印流
+
+- 打印流可以方便地打印各种数据类型的值
+- constructor
+  - `public PrintStream(File file)` : 创建新的打印流,使用指定的文件作为目的地
+  - `public PrintStream(OutputStream out)` : 创建新的打印流,使用指定的输出流作为目的地
+  - `public PrintStream(String fileName)` : 创建新的打印流,使用指定的文件路径作为目的地
+- methods
+  - `public void print(任意类型的值)` : 将任意类型的值转换为字符串输出
+  - `public void println(任意类型的值)` : 将任意类型的值转换为字符串输出,并换行
+  - `public void println()` : 输出一个空行
+
+```java
+try (PrintStream ps = new PrintStream("a.txt")) {
+    ps.print(97);
+    ps.println(97);
+    ps.println();
+    ps.println("hello");
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+
+#### properties 类
+
+- 作用：用于读取配置文件 `.properties` 文件
+- constructor
+  - `public Properties()` : 创建一个空的属性列表
+- methods
+  - `public Object setProperty(String key,String value)` : 调用 Hashtable 的方法 put
+  - `public String getProperty(String key)` : 通过 key 找到 value 值,此方法相当于 Map 集合中的 get(key) 方法
+  - `public Set<String> stringPropertyNames()` : 返回此属性列表中的键集,其中该键及其对应值是字符串,此方法相当于 Map 集合中的 keySet 方法
+  - `public void load(InputStream inStream)` : 从输入流中读取属性列表(键和元素对)
+  - `public void store(OutputStream out,String comments)` : 将此属性列表(键和元素对)写入此 Properties 表中,以适合使用 load(InputStream) 方法的格式写入输出流
+
+```java
+Properties prop = new Properties();
+try (FileInputStream fis = new FileInputStream("a.txt")) {
+    prop.load(fis);
+} catch (IOException e) {
+    e.printStackTrace();
+}
+System.out.println(prop);
+```
+
+#### 字节流与字符流的转换
+
+- `InputStreamReader` : 字节输入流转换为字符输入流
+- `OutputStreamWriter` : 字节输出流转换为字符输出流
+
+```java
+try (InputStreamReader isr = new InputStreamReader(new FileInputStream("a.txt"))) {
+    int len;
+    char[] chars = new char[1024];
+    while ((len = isr.read(chars)) != -1) {
+        System.out.println(new String(chars, 0, len));
+    }
+} catch (IOException e) {
+    e.printStackTrace();
+}
+
+try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream("b.txt"))) {
+    osw.write("hello");
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+
+#### 线程
+
+并发：多个事件在同一时间段内发生
+并行：多个事件在同一时刻发生
+
+进程：在系统中的执行单位,每个应用至少有一个进程，一个进程可以有多个线程，进程由 CPU 核心调度执行
+线程：进程中的执行单元,一个进程可以有多个线程,线程由 CPU 核心中线程调度器调度执行
+
+- 创建线程的方式
+  - 继承 Thread 类
+  - 实现 Runnable 接口
+  - 实现 Callable 接口
+  - 线程池
+- Thread 构造器
+  - `public Thread()` : 分配一个新的 Thread 对象
+  - `public Thread(String name)` : 分配一个指定名字的新的 Thread 对象
+  - `public Thread(Runnable target)` : 分配一个带有指定目标新的 Thread 对象
+  - `public Thread(Runnable target,String name)` : 分配一个带有指定目标新的 Thread 对象并指定名字
+- 线程的生命周期
+  - 新建状态
+  - 就绪状态
+  - 运行状态
+  - 阻塞状态
+  - 死亡状态
+- 线程的优先级
+  - `public final int getPriority()` : 返回此线程的优先级
+  - `public final void setPriority(int newPriority)` : 更改此线程的优先级
+- 线程的其他方法
+  - `public static Thread currentThread()` : 返回对当前正在执行的线程对象的引用
+  - `public String getName()` : 返回此线程的名称
+  - `public static void sleep(long millis)` : 使当前正在执行的线程以指定的毫秒数暂停(暂时停止执行)
+  - `public void start()` : 导致此线程开始执行; Java 虚拟机调用此线程的 run 方法
+  - `public void run()` : 如果此线程是使用独立的 Runnable 运行对象构造的,则调用该 Runnable 对象的 run 方法; 否则,此方法不执行任何操作并返回
+  - `public static void yield()` : 暂停当前正在执行的线程对象，并执行其他线程
+  - `public final void join()` : 等待该线程终止
+  - `public final void join(long millis)` : 等待该线程终止的时间最长为 millis 毫秒
+  - `public final void join(long millis,int nanos)` : 等待该线程终止的时间最长为 millis 毫秒 + nanos 纳秒
+  - `public final void setDaemon(boolean on)` : 将此线程标记为守护线程或用户线程
+  - `public final boolean isAlive()` : 测试线程是否处于活动状态
+
+##### 继承 Thread 类
+
+- 继承 Thread 类
+- 生成合适的构造器
+- 重写 run 方法
+- 需要多少条线程就创建多少个线程对象
+- 调用 start 方法启动线程(调用 run 方法不会启动线程)
+
+```java
+public class MyThread extends Thread {
+
+    public MyThread() { }
+
+    public MyThread(String name) {
+        super(name);
+    }
+
+    @Override
+    public void run() {
+        String name = getName();
+        for (int i = 0; i < 10; i++) {
+            System.out.println(name + " : " + i);
+        }
+    }
+}
+
+public class MyThreadTest {
+    public static void main(String[] args) {
+        MyThread myThread1 = new MyThread("1号线程");
+        MyThread myThread2 = new MyThread("2号线程");
+        // myThread1.run();
+        // myThread2.run();
+        myThread1.start();
+        myThread2.start();
+    }
+}
+```
+
+##### 实现 Runnable 接口
+
+- 实现 Runnable 接口
+- 重写 run 方法
+- 创建 Thread 对象,将 Runnable 接口的实现类对象作为参数传递给 Thread 类的构造器
+- 调用 start 方法启动线程(调用 run 方法不会启动线程)
+
+```java
+public class MyRunnable implements Runnable {
+    @Override
+    public void run() {
+        String name = Thread.currentThread().getName();
+        for (int i = 0; i < 10; i++) {
+            System.out.println(name + " : " + i);
+        }
+    }
+}
+
+public class MyRunnableTest {
+    public static void main(String[] args) {
+        MyRunnable myRunnable = new MyRunnable();
+        Thread thread1 = new Thread(myRunnable, "1号线程");
+        Thread thread2 = new Thread(myRunnable, "2号线程");
+        thread1.start();
+        thread2.start();
+    }
+}
+```
+
+##### 线程安全
+
+- 多个线程同时操作同一个对象时,如果不加控制,就会出现线程安全问题
+  - 数据不一致
+  - 数据丢失
+  - 数据计算错误
+- 解决线程安全问题的方法
+  - 同步代码块
+  - 同步方法
+  - Lock 锁
+- 同步代码块
+  - `synchronized(同步监视器){需要同步的代码}`
+  - 同步监视器
+    - 任何一个类的对象都可以充当同步监视器
+    - 多个线程必须要共用同一把锁
+    - 在实现 Runnable 接口创建多线程的方式中,可以考虑使用 this 充当同步监视器
+    - 在继承 Thread 类创建多线程的方式中,慎用 this 充当同步监视器,考虑使用当前类充当同步监视器
+- 同步方法（同步代码块的另一种形式）
+  - 如果操作共享数据的代码完整的声明在一个方法中,我们不妨将此方法声明为同步的
+    - `public synchronized void method(){...}`
+  - 同步方法的同步监视器是 this
+- Lock 锁
+  - `Lock lock = new ReentrantLock();`
+  - `lock.lock();`
+  - `lock.unlock();`
+
+```java
+// 同步代码块
+Runnable runnable = new Runnable(){ // 匿名内部类
+  private int ticket = 100;
+  private Object object = new Object(); // 同步监视器,可以是任何一个类的对象，多个线程必须要共用同一把锁
+  @Override
+  public void run() {
+      while (true) {
+          synchronized (object) {
+            if(ticket == 0) break; // 退出循环
+            System.out.println(Thread.currentThread().getName() + " : " + ticket);
+            ticket--;
+          }
+      }
+  }
+};
+
+Thread thread1 = new Thread(window, "1号窗口");
+Thread thread2 = new Thread(window, "2号窗口");
+Thread thread3 = new Thread(window, "3号窗口");
+thread1.start();
+thread2.start();
+thread3.start();
+
+// 同步方法
+class Window implements Runnable {
+    private int ticket = 100;
+    @Override
+    public void run() {
+        while (true) {
+            show();
+        }
+    }
+    private synchronized void show() { // 同步监视器是 this
+        if(ticket == 0) return; // 退出循环
+        System.out.println(Thread.currentThread().getName() + " : " + ticket);
+        ticket--;
+    }
+}
+
+// Lock 锁
+class Window implements Runnable {
+    private int ticket = 100;
+    private Lock lock = new ReentrantLock();
+    @Override
+    public void run() {
+        while (true) {
+            lock.lock();
+            try {
+                if(ticket == 0) break; // 退出循环
+                System.out.println(Thread.currentThread().getName() + " : " + ticket);
+                ticket--;
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
+}
+```
