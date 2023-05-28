@@ -1827,3 +1827,104 @@ class Window implements Runnable {
     }
 }
 ```
+
+##### 线程通信
+
+- 线程通信的应用场景
+  - 生产者线程（生产同一资源）和消费者线程（消费同一资源）的应用场景
+  - 线程间的通信
+- 线程通信的方法
+  - `wait()` : 一旦执行此方法,当前线程就进入阻塞状态,并释放同步监视器
+  - `notify()` : 一旦执行此方法,就会唤醒被 wait 的一个线程,如果有多个线程被 wait,就唤醒优先级高的那个
+  - `notifyAll()` : 一旦执行此方法,就会唤醒所有被 wait 的线程
+- 说明
+  - wait(),notify(),notifyAll() 三个方法必须使用在同步代码块或同步方法中
+  - wait(),notify(),notifyAll() 三个方法的调用者必须是同步代码块或同步方法中的同步监视器
+  - wait(),notify(),notifyAll() 三个方法是定义在 java.lang.Object 类中
+- 例子
+
+  ```java
+  class Clerk {
+      private int product = 0;
+      public synchronized void produceProduct() {
+          if(product < 20) { // 产品不多了，赶紧生产
+              product++;
+              System.out.println(Thread.currentThread().getName() + " : 开始生产第" + product + "个产品");
+              notify(); // 唤醒消费者线程
+          } else {
+              try {
+                  wait(); // 等待，不生产
+              } catch (InterruptedException e) {
+                  e.printStackTrace();
+              }
+          }
+      }
+      public synchronized void consumeProduct() {
+          if(product > 0) { // 有产品，快来消费
+              System.out.println(Thread.currentThread().getName() + " : 开始消费第" + product + "个产品");
+              product--;
+              notify();
+          } else {
+              try {
+                  wait();
+              } catch (InterruptedException e) {
+                  e.printStackTrace();
+              }
+          }
+      }
+  }
+
+  class Producer implements Runnable {
+      private Clerk clerk;
+      public Producer(Clerk clerk) {
+          this.clerk = clerk;
+      }
+      @Override
+      public void run() {
+          System.out.println(Thread.currentThread().getName() + " : 开始生产产品...");
+          while (true) {
+              try {
+                  Thread.sleep(10);
+              } catch (InterruptedException e) {
+                  e.printStackTrace();
+              }
+              clerk.produceProduct();
+          }
+      }
+  }
+
+  class Consumer implements Runnable {
+      private Clerk clerk;
+      public Consumer(Clerk clerk) {
+          this.clerk = clerk;
+      }
+      @Override
+      public void run() {
+          System.out.println(Thread.currentThread().getName() + " : 开始消费产品...");
+          while (true) {
+              try {
+                  Thread.sleep(20);
+              } catch (InterruptedException e) {
+                  e.printStackTrace();
+              }
+              clerk.consumeProduct();
+          }
+      }
+  }
+
+  public class ProductTest {
+      public static void main(String[] args) {
+          Clerk clerk = new Clerk(); // 同一资源
+          Producer producer = new Producer(clerk);  // 生产者
+          Consumer consumer = new Consumer(clerk);  // 消费者
+          Thread thread1 = new Thread(producer, "生产者1");
+          Thread thread2 = new Thread(consumer, "消费者1");
+          Thread thread3 = new Thread(producer, "生产者2");
+          Thread thread4 = new Thread(consumer, "消费者2");
+          thread1.start();
+          thread2.start();
+          thread3.start();
+          thread4.start();
+      }
+  }
+  ```
