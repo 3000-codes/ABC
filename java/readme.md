@@ -1063,6 +1063,18 @@ GenericClass<String> gc = new GenericClass<>();
   stream.forEach(System.out::println);
   ```
 
+#### Collections 类
+
+- 针对集合操作的工具类
+- 常用方法
+  - `public static <T> boolean addAll(Collection<T> c, T... elements)` : 往集合中添加一些元素
+  - `public static void shuffle(List<?> list)` : 打乱集合顺序
+  - `public static <T> void sort(List<T> list)` : 将集合中元素按照默认规则排序
+  - `public static <T> void sort(List<T> list，Comparator<? super T> )` : 将集合中元素按照指定规则排序
+  - `public static <T> T max(Collection<? extends T> coll)` : 根据元素的自然顺序，返回最大的元素
+  - `public static void reverse(List<?> list)` : 反转集合中元素的顺序
+  - `public static void swap(List<?> list, int i, int j)` : 将指定集合中的 i 处元素和 j 处元素进行交换
+
 #### List 接口
 
 - List 接口继承 Collection 接口,是单列集合的一个重要分支,习惯性地会把实现了 List 接口的对象称为 List 集合
@@ -1145,26 +1157,149 @@ GenericClass<String> gc = new GenericClass<>();
   - 元素顺序和底层数组长度有关，一旦长度变化，元素位置可能会发生变化
   - 线程不安全，效率高，适用于单线程环境，如果在多线程环境下需要手动添加线程安全
 - 构造器
-  - `public HashSet()` : 构造一个新的空集合,底层是一个 HashMap，初始容量为 16,负载因子为 0.75，当元素个数超过 16 * 0.75（默认容量） 时，就会进行扩容
+  - `public HashSet()` : 构造一个新的空集合,底层是一个 HashMap，初始容量为 16,负载因子为 0.75，当元素个数超过 16 \* 0.75（默认容量） 时，就会进行扩容
   - `public HashSet(Collection<? extends E> c)` : 构造一个包含指定集合的元素的集合,按照集合的迭代器返回的顺序排列
-- 常见方法见Collection接口
+- 常见方法见 Collection 接口
+
+#### LinkedHashSet 类
+
+- LinkedHashSet 是 HashSet 的子类,底层是一个哈希表(数组+链表/红黑树)+链表,多了一条链表(记录元素的存储顺序),保证元素有序
+- 特点
+  - 有序
+  - 不可重复
+  - 没有索引
+  - 可以使用 null 值，遍历时要注意空指针异常
+  - 线程不安全，效率高，适用于单线程环境，如果在多线程环境下需要手动添加线程安全
+- 构造器
+  - `public LinkedHashSet()` : 构造一个新的空集合,底层是一个 LinkedHashMap
+  - `public LinkedHashSet(Collection<? extends E> c)` : 构造一个包含指定集合的元素的集合,按照集合的迭代器返回的顺序排列
+- 常见方法见 Collection 接口
+
+#### TreeMap 类
+
+- TreeMap 是 Map 接口的一个实现类,底层是红黑树(一种自平衡的二叉树),保证键的唯一性
+- 无序的，不保证存储和取出的顺序一致
+- 不可以存储 null 键，可以存储 null 值，遍历时要注意空指针异常
+- 线程不安全，效率高，适用于单线程环境，如果在多线程环境下需要手动添加线程安全
+- 包含：当前元素，父节点，左子节点，右子节点，颜色标记
+- 可以针对集合中的元素进行“自然排序”或者“定制排序”
+- 便于升降序排序，查找和增删效率较高
+- 构造器
+  - `public TreeMap()` : 构造一个新的空映射,根据键的自然顺序进行排序
+  - `public TreeMap(Comparator<? super K> comparator)` : 构造一个新的空映射,根据自定义比较器进行排序
+
+#### TreeSet 类
+
+- 底层是一个 TreeMap,保证元素的唯一性
+- 无序的，不保证存储和取出的顺序一致
+- 可以根据元素的自然顺序排序，也可以根据构造方法的 Comparator 排序
+- 不能存储 null，存储时会抛出空指针异常
+- 线程不安全，效率高，适用于单线程环境，如果在多线程环境下需要手动添加线程安全
+- 构造器
+  - `public TreeSet()` : 构造一个新的空集合,底层是一个 TreeMap
+  - `public TreeSet(Comparator<? super E> comparator)` : 构造一个新的空 TreeSet,根据指定比较器进行排序
+  - `public TreeSet(Collection<? extends E> c)` : 构造一个包含指定集合的元素的 TreeSet,按照集合的迭代器返回的顺序排列
+  - `public TreeSet(SortedSet<E> s)` : 构造一个包含指定有序集合的元素的 TreeSet,按照集合的迭代器返回的顺序排列
+
+```java
+
+TreeSet<Integer> treeSet = new TreeSet<>();
+
+treeSet.add(88);
+treeSet.add(66);
+treeSet.add(99);
+treeSet.add(77);
+treeSet.add(11);
+
+// 自然排序
+// 基本数据类型，根据包装类的数值大小升序排序（boolean 除外）
+// String 类型，unicode 编码升序排序
+System.out.println(treeSet); // [11, 66, 77, 88, 99]
+
+// 自定义排序(重写 Comparator 接口的 compare 方法)
+TreeSet<String> treeSet1 = new TreeSet<>(new Comparator<String>() {
+    @Override
+    public int compare(String o1, String o2) {
+        // 按照字符串长度升序排序
+        int num = o1.length() - o2.length();
+        // 长度相同，按照字典顺序升序排序
+        return num == 0 ? o1.compareTo(o2) : num;
+    }
+});
+
+treeSet1.add("aaa");
+treeSet1.add("a");
+treeSet1.add("bb");
+treeSet1.add("ccc");
+
+System.out.println(treeSet1); // [a, bb, aaa, ccc]
+
+```
 
 #### Map 接口
 
-- Map 接口是双列集合的顶层接口,它定义了双列集合的常用功能
+- Map 集合以键值对的形式存储数据，键不可重复，值可重复
+- 常用方法
+  - `public V put(K key, V value)` : 将指定的值与该映射中的指定键关联（可选操作）。如果此映射以前包含一个该键的映射关系，则用指定值替换旧值
+  - `public V get(Object key)` : 返回到指定键所映射的值，如果此映射不包含该键的映射关系，则返回 null
+  - `public V remove(Object key)` : 如果存在一个键的映射关系，则将其从此映射中移除（可选操作）
+  - `public boolean containsKey(Object key)` : 如果此映射包含指定键的映射关系，则返回 true
+  - `public Set<K> keySet()` : 返回此映射中包含的键的 Set 视图
+  - `public Set<Map.Entry<K,V>> entrySet()` : 返回此映射中包含的映射关系的 Set 视图
+  - `public Collection<V> values()` : 返回此映射中包含的值的 Collection 视图
+  - `public boolean isEmpty()` : 如果此映射未包含键-值映射关系，则返回 true
+  - `public int size()` : 返回此映射中的键-值映射关系数
+  - `public void clear()` : 从此映射中移除所有映射关系（可选操作）
+  - `public boolean containsValue(Object value)` : 如果此映射将一个或多个键映射到指定值，则返回 true
+- 遍历方法
+  - 通过 set 或 collection 的方法遍历
+    - `public Set<K> keySet()` : 根据键找值
+    - `public Set<Map.Entry<K,V>> entrySet()` : 根据键值对对象找键和值
+    - `public Collection<V> values()` : 根据值找键
+  - forEach 遍历
+    - `public void forEach(BiConsumer<? super K,? super V> action)` : 对此映射中的每个键值对执行给定的操作，直到所有键值对都被处理或动作引发异常
+    ```java
+    map.forEach((k, v) -> System.out.println(k + " = " + v));
+    map.forEach(new BiConsumer<String, Integer>() {
+        @Override
+        public void accept(String s, Integer integer) {
+            System.out.println(s + " = " + integer);
+        }
+    });
+    ```
 
-##### HashMap 类
+#### HashMap 类
 
 - HashMap 是 Map 接口的一个实现类,底层是哈希表,查询速度快
 - 哈希表结构：
-  - jdk7之前：链表对象的数组
-  - jdk8之后：链表或红黑树对象的数组
+  - jdk7 之前：链表对象的数组
+  - jdk8 之后：链表或红黑树对象的数组
 - 特点
-  - 无序
+  - 无序，且不保证顺序恒久不变
   - 键不可重复,值可重复
   - 线程不安全,效率高
+  - 键与值都可以为 null，获取时需要注意空指针异常
+  - 除了非同步和允许使用 null 键 之外，HashMap 类与 Hashtable 大致相同。
+- 构造器
+  - `public HashMap()` : 构造一个具有默认初始容量 (16) 和默认加载因子 (0.75) 的空 HashMap
+  - `public HashMap(int initialCapacity)` : 构造一个带指定初始容量和默认加载因子 (0.75) 的空 HashMap
+  - `public HashMap(int initialCapacity, float loadFactor)` : 构造一个带指定初始容量和加载因子的空 HashMap
+  - `public HashMap(Map<? extends K,? extends V> m)` : 构造一个映射关系与指定 Map 相同的新 HashMap
+- 常用方法： 同 Map 接口
 
-##### LinkedHashMap 类
+#### hashTable 类
+
+- 除了非同步和允许使用 null 之外，HashMap 类与 Hashtable 大致相同。
+- 无参构造器: 构造一个具有默认初始容量 (11) 和默认加载因子 (0.75) 的空哈希表
+- 扩容规则不同
+  - HashMap 扩容为原来的 2 倍
+  - Hashtable 扩容为原来的 2 倍 + 1
+- 底层数组的元素类型不同
+  - HashMap 数组元素
+    - jdk7 之前：数组元素类型为 null,或者链表对象
+    - jdk8 之后：数组元素类型为 null,或者链表对象,或者红黑树对象
+  - Hashtable 数组元素
+    - 数组元素类型为 null,或者链表对象
 
 ## 异常和异常处理
 
@@ -1223,5 +1358,174 @@ public class MyException extends Exception {
     public MyException(String message) {
         super(message);
     }
+}
+```
+
+## IO
+
+### File 类
+
+- File 类是文件和目录路径名的抽象表示,主要用于文件和目录的创建、查找和删除等操作
+- constructor
+  - `public File(String pathname)` : 通过将给定的路径名字符串转换为抽象路径名来创建新的 File 实例
+  - `public File(String parent, String child)` : 从父路径名字符串和子路径名字符串创建新的 File 实例
+- methods
+
+  - `public String getAbsolutePath()` : 返回此 File 的绝对路径名字符串
+  - `public String getPath()` : 将此 File 转换为路径名字符串
+  - `public String getName()` : 返回由此 File 表示的文件或目录的名称
+  - `public long length()` : 返回由此 File 表示的**文件的大小**,如果是文件夹,返回值为 不确定
+
+  - `public boolean exists()` : 此 File 对象表示的文件或目录是否实际存在
+  - `public boolean isDirectory()` : 此 File 对象表示的是否为目录
+  - `public boolean isFile()` : 此 File 对象表示的是否为文件
+
+  - `public boolean createNewFile()` : 当且仅当具有该名称的文件尚不存在时,创建一个新的空文件
+  - `public boolean delete()` : 删除由此 File 表示的文件或目录
+  - `public boolean mkdir()` : 创建由此 File 表示的目录
+  - `public boolean mkdirs()` : 创建由此 File 表示的目录,包括任何必需但不存在的父目录
+  - `public boolean renameTo(File dest)` : 重命名由此 File 表示的文件或目录,返回是否成功
+
+  - `public String[] list()` : 返回一个字符串数组,命名由此 File 表示的目录中的文件和目录
+  - `public File[] listFiles()` : 返回一个抽象路径名数组,表示由该抽象路径名表示的目录中的文件，可以使用`增强 for` 循环遍历
+
+### IO 流
+
+- IO 流是一种顺序读写的操作方式,根据读写数据单位的不同分为字节流和字符流
+  - InputStream 字节输入流
+  - OutputStream 字节输出流
+  - Reader 字符输入流
+  - Writer 字符输出流
+- 根据操作数据内容不同
+  - 文件流：针对文件以字节或字符的方式进行读写操作
+    - FileInputStream 文件字节输入流
+    - FileOutputStream 文件字节输出流
+    - FileReader 文件字符输入流
+    - FileWriter 文件字符输出流
+  - 缓冲流：缓冲流可以提高 IO 流的读写效率
+    - BufferedInputStream 缓冲字节输入流
+    - BufferedOutputStream 缓冲字节输出流
+    - BufferedReader 缓冲字符输入流
+    - BufferedWriter 缓冲字符输出流
+  - 转换流：转换流可以实现字节流和字符流之间的转换（字节流 + 字符集）
+    - InputStreamReader 字节流转换为字符流
+    - OutputStreamWriter 字符流转换为字节流
+  - 对象流：对象流可以把对象以流的方式进行读写操作
+    - ObjectInputStream 对象输入流
+    - ObjectOutputStream 对象输出流
+- IO 流是一种资源,使用完毕需要关闭,否则会一直占用资源,直到 JVM 垃圾回收
+
+#### 文件字节输入流
+
+- 针对文件以字节为单位进行输入操作
+- constructor
+  - `public FileInputStream(File file)` : 创建一个向指定 File 对象表示的文件中写入数据的文件输出流
+  - `public FileInputStream(String name)` : 创建一个向具有指定名称的文件中写入数据的输出文件流
+- methods
+  - `public int read()` : 从该输入流`读取一个字节`的数据,返回值为读取的字节数据,读取到文件末尾返回 -1
+  - `public int read(byte[] b)` : 从该输入流读取最多 b.length 个字节的数据到字节数组中,返回值为读取的字节数据个数,读取到文件末尾返回 -1
+  - `public void close()` : 关闭此输入流并释放与该流关联的所有系统资源
+
+```java
+try (FileInputStream fis = new FileInputStream("a.txt")) {
+    int len;
+    // while ((len = fis.read()) != -1) {
+    //     System.out.println((char) len);
+    // }
+    byte[] bytes = new byte[1024];// 推荐使用 1024 的整数倍，通常使用8192
+    while ((len = fis.read(bytes)) != -1) {
+        System.out.println(new String(bytes, 0, len)); // 从 0 开始读取 len 个字节
+    }
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+
+#### 文件字节输出流
+
+- 针对文件以字节为单位进行输出操作
+- constructor
+  - `public FileOutputStream(File file)` : 创建一个向指定 File 对象表示的文件中写入数据的文件输出流
+  - `public FileOutputStream(String name,boolen append)` : 创建一个向具有指定名称的文件中写入数据的输出文件流,append 为 true 表示追加写入
+  - `public FileOutputStream(String name)` : 创建一个向具有指定名称的文件中写入数据的输出文件流
+  - `public FileOutputStream(File file,boolen append)` : 创建一个向指定 File 对象表示的文件中写入数据的文件输出流,append 为 true 表示追加写入
+- methods
+  - `public void write(int b)` : 将指定的字节写入此文件输出流,返回值为写入的字节数据
+  - `public void write(byte[] b)` : 将 b.length 个字节从指定的字节数组写入此文件输出流,返回值为写入的字节数据个数
+  - `public void write(byte[] b,int off,int len)` : 将指定字节数组中从偏移量 off 开始的 len 个字节写入此文件输出流,返回值为写入的字节数据个数
+  - `public void close()` : 关闭此输出流并释放与此流有关的所有系统资源
+
+```java
+try (FileOutputStream fos = new FileOutputStream("a.txt")) {
+    int start = 'a';
+    int end = 'z';
+    // 将 a-z 写入文件
+    while (start <= end) {
+        fos.write(start);
+        start++;
+    }
+    // 回车换行
+    fos.write("\r\n".getBytes());
+    byte[] bytes = "hello".getBytes();
+    fos.write(bytes);
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+
+#### 文件字符输入流
+
+- 针对文件以字符为单位进行输入操作
+  - 编码：把字符转换为字节
+  - 解码：把字节转换为字符
+  - 编码和解码的字符集要一致,否则会出现乱码
+- constructor
+  - `public FileReader(File file)` : 创建一个新的 FileReader,给定要读取的 File 对象
+  - `public FileReader(String fileName)` : 创建一个新的 FileReader,给定要读取的文件的名称
+- methods
+  - `public int read()` : 读取单个字符,返回值为读取的字符数据,读取到文件末尾返回 -1
+  - `public int read(char[] cbuf)` : 将字符读入数组,返回值为读取的字符数据个数,读取到文件末尾返回 -1
+  - `public void close()` : 关闭此流并释放与此流有关的所有系统资源
+
+```java
+try (FileReader fr = new FileReader("a.txt")) {
+    int len;
+    // while ((len = fr.read()) != -1) {
+    //     System.out.println((char) len);
+    // }
+    char[] chars = new char[1024];
+    while ((len = fr.read(chars)) != -1) {
+        System.out.println(new String(chars, 0, len));
+    }
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+
+#### 文件字符输出流
+
+- 针对文件以字符为单位进行输出操作
+- constructor
+  - `public FileWriter(File file)` : 创建一个新的 FileWriter,给定要读取的 File 对象
+  - `public FileWriter(File file,boolen append)` : 创建一个新的 FileWriter,给定要读取的 File 对象,append 为 true 表示追加写入
+  - `public FileWriter(String fileName)` : 创建一个新的 FileWriter,给定要读取的文件的名称
+  - `public FileWriter(String fileName,boolen append)` : 创建一个新的 FileWriter,给定要读取的文件的名称,append 为 true 表示追加写入
+- methods
+  - `public void write(int c)` : 写入单个字符
+  - `public void write(char[] cbuf)` : 写入字符数组
+  - `public void write(char[] cbuf,int off,int len)` : 写入字符数组的某一部分,off 为开始索引,len 为写入字符个数
+  - `public void write(String str)` : 写入字符串
+  - `public void write(String str,int off,int len)` : 写入字符串的某一部分,off 为开始索引,len 为写入字符个数
+  - `public void close()` : 关闭此流并释放与此流有关的所有系统资源
+  - `public void flush()` : 刷新该流的缓冲,将缓冲区中的数据写入目的地
+
+```java
+try (FileWriter fw = new FileWriter("a.txt")) {
+    fw.write(97); // a
+    fw.write('b');
+    fw.write("\r\n");
+    fw.write("hello");
+} catch (IOException e) {
+    e.printStackTrace();
 }
 ```
