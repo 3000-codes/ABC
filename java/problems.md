@@ -216,3 +216,28 @@ try{
 
 - 字节流：以字节为单位，读取文件，适合读取任何类型的文件
 - 字符流：以字符为单位，读取文件，只适合读取文本文件
+
+## 线程
+
+### 单例模式的线程安全问题
+
+### 线程状态
+
+- NEW：新建状态，线程对象被创建，但是没有调用 start 方法
+- RUNNABLE：运行状态，线程对象被创建，调用了 start 方法
+- BLOCKED：阻塞状态，线程对象被创建，调用了 start 方法，但是没有获取到资源
+- WAITING：等待状态，线程对象调用了 wait 方法，进入等待状态
+- TIMED_WAITING：超时等待状态，线程对象调用了 sleep 方法，进入超时等待状态
+- TERMINATED：终止状态，线程对象执行完毕，进入终止状态
+
+- 线程转换规则
+  - NEW -> RUNNABLE : 调用 start 方法
+  - RUNNABLE -> BLOCKED : 获取不到资源
+  - RUNNABLE -> WAITING : 调用 wait 方法
+  - RUNNABLE -> TIMED_WAITING : 调用 sleep 方法
+  - RUNNABLE -> TERMINATED : 执行完毕
+  - BLOCKED -> RUNNABLE : 获取到资源
+  - WAITING -> RUNNABLE : 调用 notify 方法 或 调用 notifyAll 方法
+  - WAITING -> BLOCKED : 调用 notify 方法 或 调用 notifyAll 方法, 但是获取不到资源(多线程)
+  - TIMED_WAITING -> RUNNABLE : 休眠时间到了
+  - TIMED_WAITING -> BLOCKED : 休眠时间到了，但是获取不到资源(多线程)
