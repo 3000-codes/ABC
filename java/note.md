@@ -480,8 +480,6 @@ int[] arr = new int[3];
   - 隐式加载子类实例成员和构造器代码块（按照代码顺序）
   - 子类构造器
 
-
-
 ## 补充
 
 ### 原码，反码，补码
@@ -523,3 +521,299 @@ int[] arr = new int[3];
 
 - 设置编码格式：File->Settings->Editor->File Encodings->Global Encoding 和 Project Encoding,default enco...都设置为 UTF-8
 - 设置自动编译：File->Settings->Build,Execution,Deployment->Compiler->Build project automatically
+
+### 网络编程
+
+计算机网络:是指将地理位置不同的多台计算机和外部设备通过通信线路连接起来，以功能完善的网络软件实现资源共享和信息传递的系统。
+
+网络编程:直接或间接的通过网络协议与其他计算机实现数据交换，进行通信的过程。
+
+需要解决的问题：
+
+- 如何准确的定位网络上一台或多台主机；定位主机上的特定的应用
+- 找到主机后如何可靠高效的进行数据传输
+
+网络编程的两个要素：
+
+- 通信协议
+  - OSI 七层模型:应用层，表示层，会话层，传输层，网络层，数据链路层，物理层
+  - TCP/IP 四层模型:应用层(前三层 OSI)，传输层，网络层，物理+数据链路层
+- IP 地址
+  - IP 地址用来唯一的标识网络上的计算机
+  - IP 分为 IPv4 和 IPv6
+  - IPv4 是一个 32 位的整数，通常被分为 4 个字节
+  - IPv6 是一个 128 位的整数，通常被分为 8 个字节
+
+数据的封装与拆包
+
+- 数据封装：将数据按照一定的格式打包成数据包
+- 数据拆包：将数据包拆分成一个个的数据包
+
+#### InetAddress 类
+
+- 用来表示 IP 地址
+- 不能直接创建，只能通过静态方法获取
+- 常用方法：
+  - `getLocalHost()`：获取本机 IP 地址
+  - `getByName(String host)`：根据主机名或者 IP 地址的字符串表示获取对应的 IP 地址
+  - `getHostAddress()`：获取 IP 地址的字符串表示
+  - `getHostName()`：获取主机名
+
+### TCP 通信
+
+- 使用 TCP 协议前，必须先建立 TCP 连接，形成传输数据通道
+- 传输前，采用“三次握手”方式，点对点通信，是可靠的
+- TCP 协议进行通信的两个应用进程：客户端、服务端
+- 在连接中可进行大数据量的传输
+- 传输完毕，需释放已建立的连接，效率低
+
+#### "三次握手"与"四次挥手"
+
+- 三次握手: 客户端发送带有 SYN 标志的数据包给服务器，服务器接收后回复一个带有 SYN/ACK 标志的数据包以示传达确认信息，客户端再回复一个带有 ACK 标志的数据包，代表“握手”结束
+- 四次挥手: 客户端发送一个 FIN 标志的数据包给服务器，服务器接收后回复一个带有 ACK 标志的数据包以示传达确认信息，服务器再回复一个带有 FIN 标志的数据包给客户端，客户端接收后回复一个带有 ACK 标志的数据包以示传达确认信息，服务器再回复一个带有 ACK 标志的数据包给客户端，代表“挥手”结束
+
+### UDP
+
+- 将数据、源、目的封装成数据包，不需要建立连接
+- 每个数据报的大小限制在 64K 内
+- 因无连接，是不可靠的
+- 可以广播发送
+- 发送数据结束时无需释放资源，开销小，速度快
+
+### Socket
+
+- Socket 是网络上运行的程序之间双向通信链路的终结点，是一种特殊的文件，可以通过它向网络发送或者接收数据，实现进程之间的通信
+- Socket 是 TCP/IP 协议的一个实现，是对 TCP/IP 协议的封装和应用，是一组接口
+- Socket 编程：是指使用 Socket 套接字进行网络通信的编程，通常也称作套接字编程，是对 TCP/IP 协议的封装
+
+```java
+public void client(){
+  // 1. 创建 Socket 对象，指明服务器端的 IP 和端口号
+  InetAddress inet = InetAddress.getByName("127.0.0.1");
+  Socket  socket = new Socket(inet, 8899);
+  // 2. 获取一个输出流，用于输出数据
+  OutputStream os = socket.getOutputStream();
+  // 3. 写出数据的操作
+  os.write("你好，我是客户端 MM".getBytes());
+  // 4. 资源的关闭
+  os.close();
+  socket.close();
+}
+
+public void server(){
+  // 1. 创建服务器端的 ServerSocket，指明自己的端口号
+  ServerSocket ss = new ServerSocket(8899);
+  // 2. 调用 accept() 表示接收来自于客户端的 Socket
+  Socket socket = ss.accept();
+  // 3. 获取输入流
+  InputStream is = socket.getInputStream();
+  // 4. 读取输入流中的数据
+  ByteArrayOutputStream baos = new ByteArrayOutputStream();
+  byte[] buffer = new byte[1024];
+  int len;
+  while ((len = is.read(buffer)) != -1) {
+    baos.write(buffer, 0, len);
+  }
+  System.out.println(baos.toString());
+  // 5. 关闭资源
+  baos.close();
+  is.close();
+  socket.close();
+  ss.close();
+}
+```
+
+```java
+public void client(){
+  DatagramSocket socket = new DatagramSocket(); // 创建 DatagramSocket 对象
+  String str = "UDP方式发送数据";
+  byte[] data = str.getBytes();
+  InetAddress inet = InetAddress.getByName("127.0.0.1");
+  DatagramPacket packet = new DatagramPacket(data, 0, data.length, inet, 9090); // 创建 DatagramPacket 对象，包含将要发送的数据
+  socket.send(packet);
+  socket.close();
+}
+
+public void server(){
+  DatagramSocket socket = new DatagramSocket(9090);
+  byte[] buffer = new byte[100];
+  DatagramPacket packet = new DatagramPacket(buffer, 0, buffer.length);
+  socket.receive(packet);
+  System.out.println(new String(packet.getData(), 0, packet.getLength()));
+  socket.close();
+}
+```
+
+### URL
+
+- URL：统一资源定位符，表示 Internet 上某一资源的地址
+- URL 的基本结构：`协议://主机名:端口号/文件名#片段名?参数列表`
+- 构造器和常用方法
+- `public URL(String protocol, String host, int port, String file)`
+- `public URL(String protocol, String host, String file)`
+- `public URL(String protocol, String host, int port, String file, URLStreamHandler handler)`
+- `public URLConnection openConnection()` // 创建一个 URLConnection 对象，它表示到 URL 所引用的远程对象的连接,之后通过该实例读取或写入对象
+- `public final InputStream openStream()` // 打开此 URL 的连接并返回一个用于从该连接读入的 InputStream
+- `public final String getProtocol()` // 获取该 URL 的协议名
+- `public final String getHost()` // 获取该 URL 的主机名
+- `public final String getPort()` // 获取该 URL 的端口号
+- `public final String getPath()` // 获取该 URL 的文件路径
+- `public final String getFile()` // 获取该 URL 的文件名
+- `public final String getRef()` // 获取该 URL 在文件中的相对位置
+- `public final String getQuery()` // 获取该 URL 的查询名
+
+## Java8 新特性
+
+- Lambda 表达式
+- 强大的 Stream API
+- 便于并行的并发 API
+
+### Lambda 表达式
+
+- Lambda 表达式是一个匿名函数，可以把 Lambda 表达式理解为是一段可以传递的代码（将代码像数据一样进行传递）
+- 使用 Lambda 表达式可以使代码变的更加简洁紧凑
+- Lambda 表达式的写法：`(形参列表) -> {方法体}`
+
+```java
+// 1. 无参，无返回值
+Runnable r1 = () -> System.out.println("Hello Lambda!");
+r1.run();
+
+// 2. 有一个参数，并且无返回值
+Consumer<String> con = (x) -> System.out.println(x);
+con.accept("Hello Lambda!");
+
+// 3. 数据类型可以省略，因为可由编译器推断得出，称为“类型推断”
+Consumer<String> con1 = (x) -> System.out.println(x);
+con1.accept("Hello Lambda!");
+
+// 4. Lambda 若只需要一个参数时，参数的小括号可以省略
+Consumer<String> con2 = x -> System.out.println(x);
+con2.accept("Hello Lambda!");
+
+// 5. Lambda 需要两个或以上的参数，多条执行语句，并且可以有返回值
+Comparator<Integer> com = (x, y) -> {
+  System.out.println("函数式接口");
+  return Integer.compare(x, y);
+};
+```
+
+#### 函数式接口
+
+- 如果一个接口中，只声明了一个抽象方法，则此接口就称为函数式接口
+- 函数式接口的实例，可以使用 Lambda 表达式来创建该接口的对象
+- 为了保证一个接口是函数式接口，需要使用注解 `@FunctionalInterface` 修饰
+
+  ```java
+  @FunctionalInterface
+  public interface MyInterface {
+    void method1();
+  }
+  ```
+
+- 四大核心函数式接口
+  - `Consumer<T>`：消费型接口
+    - `void accept(T t)`
+  - `Supplier<T>`：供给型接口
+    - `T get()`
+  - `Function<T, R>`：函数型接口
+    - `R apply(T t)`
+  - `Predicate<T>`：断言型接口
+    - `boolean test(T t)`
+
+```java
+// 消费型接口
+public void happy(double money, Consumer<Double> con) {
+  con.accept(money); // 花钱
+}
+// 调用
+happy(10000, (m) -> System.out.println("买电脑花了" + m + "元"));
+// 供给型接口
+public List<Integer> getNumList(int num, Supplier<Integer> sup) {
+  List<Integer> list = new ArrayList<>();
+  for (int i = 0; i < num; i++) {
+    Integer n = sup.get(); // 获取一个随机数
+    list.add(n);
+  }
+  return list;
+}
+// 调用
+List<Integer> list = getNumList(10, () -> (int) (Math.random() * 100));
+// 函数型接口
+public String strHandler(String str, Function<String, String> fun) {
+  return fun.apply(str);
+}
+// 调用
+String newStr = strHandler("\t\t\t 掐头去尾   ", (str) -> str.trim());
+// 断言型接口
+public List<String> filterStr(List<String> list, Predicate<String> pre) {
+  List<String> strList = new ArrayList<>();
+  for (String str : list) {
+    if (pre.test(str)) {
+      strList.add(str);
+    }
+  }
+  return strList;
+}
+// 调用
+List<String> list = Arrays.asList("Hello", "Lambda", "www", "ok");
+List<String> strList = filterStr(list, (s) -> s.length() > 3); // 长度大于 3 的字符串
+```
+
+#### 方法引用
+
+- 当要传递给 Lambda 体的操作，已经有实现的方法了，可以使用方法引用
+- 方法引用可以看做是 Lambda 表达式深层次的表达，也就是说，方法引用就是 Lambda 表达式，也就是函数式接口的一个实例，通过方法的名字来指向一个方法，可以认为是 Lambda 表达式的一个语法糖
+- 使用格式：`类（或对象）:: 方法名`
+- 方法引用使用的要求：要求接口中的抽象方法的形参列表和返回值类型与方法引用的方法的形参列表和返回值类型相同（针对于情况一和情况二）
+- 情况一：对象 :: 非静态方法
+- 情况二：类 :: 静态方法
+- 情况三：类 :: 非静态方法
+
+```java
+// 情况一：对象 :: 非静态方法
+Consumer<String> con = (x) -> System.out.println(x);
+PrintStream ps = System.out;
+Consumer<String> con1 = ps::println;
+// 调用
+con1.accept("Hello Lambda!");
+// 情况二：类 :: 静态方法
+Comparator<Integer> com = (x, y) -> Integer.compare(x, y);
+Comparator<Integer> com1 = Integer::compare;
+// 调用
+int compare = com1.compare(1, 2);
+// 情况三：类 :: 非静态方法
+BiPredicate<String, String> bp = (x, y) -> x.equals(y);
+BiPredicate<String, String> bp1 = String::equals;
+// 调用
+boolean test = bp1.test("abc", "abc");
+```
+
+#### 构造器引用
+
+- 格式：`类名 :: new`
+- 需要调用的构造器的参数列表要与函数式接口中抽象方法的参数列表保持一致
+
+```java
+// 情况一：无参构造器
+Supplier<Employee> sup = () -> new Employee();
+Supplier<Employee> sup1 = Employee::new;
+// 调用
+Employee emp = sup1.get();
+// 情况二：有参构造器
+Function<Integer, Employee> fun = (x) -> new Employee(x);
+Function<Integer, Employee> fun1 = Employee::new;
+// 调用
+Employee emp = fun1.apply(101);
+```
+
+#### 数组引用
+
+- 格式：`类型[] :: new`
+
+```java
+Function<Integer, String[]> fun = (x) -> new String[x];
+Function<Integer, String[]> fun1 = String[]::new;
+// 调用
+String[] arr = fun1.apply(10);
+```
