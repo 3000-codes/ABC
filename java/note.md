@@ -817,3 +817,36 @@ Function<Integer, String[]> fun1 = String[]::new;
 // 调用
 String[] arr = fun1.apply(10);
 ```
+
+### Stream API
+
+Stream 是 Java 8 中处理集合的关键抽象概念，它可以指定你希望对集合进行的操作，可以执行非常复杂的查找、过滤和映射数据等操作.
+
+使用 Stream API 对集合数据进行操作，就类似于使用 SQL 执行的数据库查询，也可以使用 Stream API 来并行执行操作.
+
+简而言之，Stream API 提供了一种高效且易于使用的处理数据的方式
+
+#### Stream 的三个操作步骤
+
+1. 创建 Stream
+2. 中间操作
+3. 终止操作（终端操作）
+
+```java
+// 创建 Stream
+// 方式一：通过集合
+List<String> list = new ArrayList<>();
+Stream<String> stream = list.stream();
+// 方式二：通过数组
+Integer[] nums = new Integer[10];
+Stream<Integer> stream1 = Arrays.stream(nums);
+// 方式三：通过 Stream 的 of()
+Stream<Employee> stream2 = Stream.of(1, 2, 3, 4, 5);
+// 方式四：创建无限流
+// 迭代
+Stream<Integer> stream3 = Stream.iterate(0, (x) -> x + 2);
+// 调用
+stream3.limit(10).forEach(System.out::println);
+// 生成
+Stream.generate(() -> Math.random()).limit(5).forEach(System.out::println);
+```
