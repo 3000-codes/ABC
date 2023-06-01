@@ -199,3 +199,303 @@ public void loadProperties(){
     }
 }
 ```
+
+## Java8 新特性
+
+- Lambda 表达式
+- 强大的 Stream API
+- 便于并行的并发 API
+
+### Lambda 表达式
+
+- Lambda 表达式是一个匿名函数，可以把 Lambda 表达式理解为是一段可以传递的代码（将代码像数据一样进行传递）
+- 使用 Lambda 表达式可以使代码变的更加简洁紧凑
+- Lambda 表达式的写法：`(形参列表) -> {方法体}`
+
+```java
+// 1. 无参，无返回值
+Runnable r1 = () -> System.out.println("Hello Lambda!");
+r1.run();
+
+// 2. 有一个参数，并且无返回值
+Consumer<String> con = (x) -> System.out.println(x);
+con.accept("Hello Lambda!");
+
+// 3. 数据类型可以省略，因为可由编译器推断得出，称为“类型推断”
+Consumer<String> con1 = (x) -> System.out.println(x);
+con1.accept("Hello Lambda!");
+
+// 4. Lambda 若只需要一个参数时，参数的小括号可以省略
+Consumer<String> con2 = x -> System.out.println(x);
+con2.accept("Hello Lambda!");
+
+// 5. Lambda 需要两个或以上的参数，多条执行语句，并且可以有返回值
+Comparator<Integer> com = (x, y) -> {
+  System.out.println("函数式接口");
+  return Integer.compare(x, y);
+};
+```
+
+#### 函数式接口
+
+- 如果一个接口中，只声明了一个抽象方法，则此接口就称为函数式接口
+- 函数式接口的实例，可以使用 Lambda 表达式来创建该接口的对象
+- 为了保证一个接口是函数式接口，需要使用注解 `@FunctionalInterface` 修饰
+
+  ```java
+  @FunctionalInterface
+  public interface MyInterface {
+    void method1();
+  }
+  ```
+
+- 四大核心函数式接口
+  - `Consumer<T>`：消费型接口
+    - `void accept(T t)`
+  - `Supplier<T>`：供给型接口
+    - `T get()`
+  - `Function<T, R>`：函数型接口
+    - `R apply(T t)`
+  - `Predicate<T>`：断言型接口
+    - `boolean test(T t)`
+
+```java
+// 消费型接口
+public void happy(double money, Consumer<Double> con) {
+  con.accept(money); // 花钱
+}
+// 调用
+happy(10000, (m) -> System.out.println("买电脑花了" + m + "元"));
+// 供给型接口
+public List<Integer> getNumList(int num, Supplier<Integer> sup) {
+  List<Integer> list = new ArrayList<>();
+  for (int i = 0; i < num; i++) {
+    Integer n = sup.get(); // 获取一个随机数
+    list.add(n);
+  }
+  return list;
+}
+// 调用
+List<Integer> list = getNumList(10, () -> (int) (Math.random() * 100));
+// 函数型接口
+public String strHandler(String str, Function<String, String> fun) {
+  return fun.apply(str);
+}
+// 调用
+String newStr = strHandler("\t\t\t 掐头去尾   ", (str) -> str.trim());
+// 断言型接口
+public List<String> filterStr(List<String> list, Predicate<String> pre) {
+  List<String> strList = new ArrayList<>();
+  for (String str : list) {
+    if (pre.test(str)) {
+      strList.add(str);
+    }
+  }
+  return strList;
+}
+// 调用
+List<String> list = Arrays.asList("Hello", "Lambda", "www", "ok");
+List<String> strList = filterStr(list, (s) -> s.length() > 3); // 长度大于 3 的字符串
+```
+
+#### 方法引用
+
+- 当要传递给 Lambda 体的操作，已经有实现的方法了，可以使用方法引用
+- 方法引用可以看做是 Lambda 表达式深层次的表达，也就是说，方法引用就是 Lambda 表达式，也就是函数式接口的一个实例，通过方法的名字来指向一个方法，可以认为是 Lambda 表达式的一个语法糖
+- 使用格式：`类（或对象）:: 方法名`
+- 方法引用使用的要求：要求接口中的抽象方法的形参列表和返回值类型与方法引用的方法的形参列表和返回值类型相同（针对于情况一和情况二）
+- 情况一：对象 :: 非静态方法
+- 情况二：类 :: 静态方法
+- 情况三：类 :: 非静态方法
+
+```java
+// 情况一：对象 :: 非静态方法
+Consumer<String> con = (x) -> System.out.println(x);
+PrintStream ps = System.out;
+Consumer<String> con1 = ps::println;
+// 调用
+con1.accept("Hello Lambda!");
+// 情况二：类 :: 静态方法
+Comparator<Integer> com = (x, y) -> Integer.compare(x, y);
+Comparator<Integer> com1 = Integer::compare;
+// 调用
+int compare = com1.compare(1, 2);
+// 情况三：类 :: 非静态方法
+BiPredicate<String, String> bp = (x, y) -> x.equals(y);
+BiPredicate<String, String> bp1 = String::equals;
+// 调用
+boolean test = bp1.test("abc", "abc");
+```
+
+#### 构造器引用
+
+- 格式：`类名 :: new`
+- 需要调用的构造器的参数列表要与函数式接口中抽象方法的参数列表保持一致
+
+```java
+// 情况一：无参构造器
+Supplier<Employee> sup = () -> new Employee();
+Supplier<Employee> sup1 = Employee::new;
+// 调用
+Employee emp = sup1.get();
+// 情况二：有参构造器
+Function<Integer, Employee> fun = (x) -> new Employee(x);
+Function<Integer, Employee> fun1 = Employee::new;
+// 调用
+Employee emp = fun1.apply(101);
+```
+
+#### 数组引用
+
+- 格式：`类型[] :: new`
+
+```java
+Function<Integer, String[]> fun = (x) -> new String[x];
+Function<Integer, String[]> fun1 = String[]::new;
+// 调用
+String[] arr = fun1.apply(10);
+```
+
+### Stream API
+
+Stream 是 Java 8 中处理集合的关键抽象概念，它可以指定你希望对集合进行的操作，可以执行非常复杂的查找、过滤和映射数据等操作.
+
+使用 Stream API 对集合数据进行操作，就类似于使用 SQL 执行的数据库查询，也可以使用 Stream API 来并行执行操作.
+
+简而言之，Stream API 提供了一种高效且易于使用的处理数据的方式
+
+#### Stream 的三个操作步骤
+
+1. 创建 Stream
+2. 中间操作
+   - `filter(Predicate p)`：过滤
+   - `limit(long maxSize)`：截断流，使其元素不超过给定数量
+   - `skip(long n)`：跳过元素，返回一个扔掉了前 n 个元素的流
+   - `distinct()`：筛选，通过流所生成元素的 hashCode() 和 equals() 去除重复元素
+   - `map(Function f)`：映射，接收一个函数作为参数，该函数会被应用到每个元素上，并将其映射成一个新的元素
+   - `flatMap(Function f)`：接收一个函数作为参数，将流中的每个值都换成另一个流，然后把所有流连接成一个流
+   - `sorted()`：自然排序
+   - `sorted(Comparator comp)`：定制排序
+3. 终止操作（终端操作）:只有当终止操作执行时，所有的中间操作才会执行，称为“惰性求值”
+   - `allMatch(Predicate p)`：检查是否匹配所有元素
+   - `anyMatch(Predicate p)`：检查是否至少匹配一个元素
+   - `noneMatch(Predicate p)`：检查是否没有匹配的元素
+   - `findFirst()`：返回第一个元素
+   - `findAny()`：返回当前流中的任意元素
+   - `count()`：返回流中元素的总个数
+   - `max(Comparator c)`：返回流中最大值
+   - `min(Comparator c)`：返回流中最小值
+   - `reduce(T identity, BinaryOperator b)`：可以将流中元素反复结合起来，得到一个值，返回 T
+   - `reduce(BinaryOperator b)`：可以将流中元素反复结合起来，得到一个值，返回 Optional<T>
+   - `collect(Collector c)`：将流转换为其他形式，接收一个 Collector 接口的实现，用于给 Stream 中元素做汇总的方法
+   - `forEach(Consumer c)`：内部迭代
+
+```java
+// 创建 Stream
+// 方式一：通过集合
+List<String> list = new ArrayList<>();
+Stream<String> stream = list.stream();
+// 方式二：通过数组
+Integer[] nums = new Integer[10];
+Stream<Integer> stream1 = Arrays.stream(nums);
+// 方式三：通过 Stream 的 of()
+Stream<Employee> stream2 = Stream.of(1, 2, 3, 4, 5);
+// 方式四：创建无限流
+// 迭代
+Stream<Integer> stream3 = Stream.iterate(0, (x) -> x + 2);
+// 调用
+stream3.limit(10).forEach(System.out::println);
+// 生成
+Stream.generate(() -> Math.random()).limit(5).forEach(System.out::println);
+```
+
+#### 并行流与串行流
+
+- 并行流：多个线程操作同一个流，效率高
+- 串行流：一个线程操作一个流，效率低
+
+```java
+// 并行流
+List<String> list = new ArrayList<>();
+Stream<String> stream = list.parallelStream();
+// 串行流
+List<String> list = new ArrayList<>();
+Stream<String> stream = list.stream();
+```
+
+#### Optional 类
+
+- 为了在程序中避免出现空指针异常而创建的
+- 常用方法
+  - `ofNullable(T t)`：创建一个 Optional 实例，t 可以为 null
+  - `empty()`：创建一个空的 Optional 实例
+  - `orElse(T t)`：如果调用对象包含值，返回该值，否则返回 t
+  - `orElseGet(Supplier s)`：如果调用对象包含值，返回该值，否则返回 s 获取的值
+  - `map(Function f)`：如果有值对其处理，并返回处理后的 Optional，否则返回 Optional.empty()
+  - `flatMap(Function mapper)`：与 map 类似，要求返回值必须是 Optional
+
+```java
+// 创建 Optional 实例
+Optional<Employee> op = Optional.of(new Employee());
+// 创建空的 Optional 实例
+Optional<Object> op1 = Optional.empty();
+// 创建 Optional 实例，t 可以为 null
+Optional<Employee> op2 = Optional.ofNullable(null);
+// 判断是否有值
+op.isPresent();
+// 如果调用对象包含值，返回该值，否则返回 t
+op.orElse(new Employee());
+// 如果调用对象包含值，返回该值，否则返回 s 获取的值
+op.orElseGet(() -> new Employee());
+// 如果有值对其处理，并返回处理后的 Optional，否则返回 Optional.empty()
+Optional<String> op3 = op.map((e) -> e.getName());
+// 与 map 类似，要求返回值必须是 Optional
+Optional<String> op4 = op.flatMap((e) -> Optional.of(e.getName()));
+```
+
+### 注解
+
+- JDK 5.0 新增的功能
+- 说明程序的一些配置信息，可以在编译、类加载、运行时被读取，并执行相应的处理
+- 使用注解：注解使用 @注解名 关键字定义
+  - 内置注解
+    - `@Override`：限定重写父类方法，该注解只能用于方法
+    - `@Deprecated`：用于表示所修饰的元素（类、方法等）已过时
+    - `@SuppressWarnings`：抑制编译器警告
+  - 元注解：用于修饰其他注解的注解
+    - `@Retention`：指定所修饰的 Annotation 的生命周期：`SOURCE`、`CLASS`（默认行为）、`RUNTIME`
+    - `@Target`：用于指定被修饰的 Annotation 能用于修饰哪些程序元素
+    - `@Documented`：表示所修饰的注解在被 javadoc 解析时，保留下来
+    - `@Inherited`：被它修饰的 Annotation 将具有继承性
+  - 自定义注解：参照 `@SuppressWarnings` 定义
+    - `public @interface 注解名 {定义体}`
+    - 注解的成员变量在 Annotation 定义中以无参无异常方式声明
+    - 可以用 default 为成员变量指定一个默认值（强烈推荐）
+    - 如果只有一个成员变量，一般命名为 value
+    - 注解元素必须要有值，我们定义注解元素时，经常使用空字符串、0 作为默认值
+
+```java
+// 自定义注解
+@Target({TYPE, FIELD, METHOD, PARAMETER, CONSTRUCTOR, LOCAL_VARIABLE}) // 能够修饰的范围:类、属性、方法、参数、构造器、局部变量
+@Retention(RetentionPolicy.RUNTIME) // 生命周期:SOURCE、CLASS（默认行为）、RUNTIME
+@Documented // 元注解:表示所修饰的注解在被 javadoc 解析时，保留下来
+public @interface MyAnnotation {
+    String value() default "hello";
+}
+
+// 利用反射获取注解信息
+Class clazz = Person.class;
+Annotation[] annotations = clazz.getAnnotations();// 获取运行时注解
+for (Annotation annotation : annotations) {
+    MyAnnotation myAnnotation = (MyAnnotation) annotation;
+    System.out.println(myAnnotation.value());
+}
+
+// JDK 8 中注解的新特性：可重复注解、类型注解
+// 可重复注解:在 MyAnnotation 上声明 @Repeatable，成员值为 MyAnnotations.class
+@Repeatable(MyAnnotations.class)
+public @interface MyAnnotation {
+    String value() default "hello";
+}
+
+```
