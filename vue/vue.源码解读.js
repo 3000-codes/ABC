@@ -155,9 +155,9 @@ const isGloballyWhitelisted = /* @__PURE__ */ makeMap(GLOBALS_WHITE_LISTED);
 
 const range = 2;
 function generateCodeFrame(source, start = 0, end = source.length) {
-  let lines = source.split(/(\r?\n)/);
-  const newlineSequences = lines.filter((_, idx) => idx % 2 === 1);
-  lines = lines.filter((_, idx) => idx % 2 === 0);
+  let lines = source.split(/(\r?\n)/);// 按照换行符分割
+  const newlineSequences = lines.filter((_, idx) => idx % 2 === 1); //奇数行
+  lines = lines.filter((_, idx) => idx % 2 === 0); // 偶数行
   let count = 0;
   const res = [];
   for (let i = 0; i < lines.length; i++) {
