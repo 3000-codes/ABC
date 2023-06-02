@@ -133,3 +133,70 @@ select column1, column2 from table_name left join table_name2 on table_name.colu
 select column1, column2 from table_name t1, table_name t2 where t1.column1 = t2.column1;
 
 ```
+
+### DDL (Data Definition Language)
+
+- 创建和管理表
+- 不可回滚
+
+#### 创建表
+
+语句格式:
+
+- 创建新表：`create table table_name(column1 type1, column2 type2, ... columnN typeN);`
+- 基于其他表：`create table table_name as select column1, column2, ... columnN from table_name;`
+  - 不包含约束
+  - 包含原来表的数据
+  - 可以使用 where 子句过滤数据（使用一个不可能成立的条件，如 1=2，这样就不会复制任何数据）
+
+```sql
+create table table_name(
+    id int(10) auto_increment primary key, -- 主键,自增
+    'name' varchar(20), -- name为关键字,需要使用''
+    score float(5,2),
+    birthday date
+);
+
+```
+
+| 数据类型    | 说明                                                                |
+| :---------- | :------------------------------------------------------------------ |
+| int         | 整数 , 4 字节                                                       |
+| char(n)     | 字符串, n 字节,默认 1 ,1-255                                        |
+| varchar(n)  | 可变字符串, 必须指定长度                                            |
+| float(m,d)  | 单精度浮点数, m 总位数, d 小数位数,d<=m<=255,0<=d<=30，默认 m+d<=6  |
+| double(m,d) | 双精度浮点数, m 总位数, d 小数位数,d<=m<=255,0<=d<=30 ,默认 m+d<=15 |
+| date        | 日期,格式为 YYYY-MM-DD                                              |
+| blob        | 二进制数据,最大 4G                                                  |
+| text        | 文本数据,最大 4G                                                    |
+
+#### 修改表
+
+```sql
+-- 添加列
+alter table table_name add column_name type;-- 在table_name表中添加类型为type的column_name列
+alter table table_name add column_name type first;-- 放在第一列
+alter table table_name add column_name type after column_name2;-- 放在column_name2列后面
+alter table table_name add column_name type default value;-- 设置默认值
+
+-- 修改列
+alter table table_name modify column_name type;-- 修改列类型
+alter table table_name modify column_name type first;-- 放在第一列
+alter table table_name modify column_name type after column_name2;-- 放在column_name2列后面
+
+-- 重命名
+alter table table_name change column_name new_column_name type;-- 修改列名
+
+-- 删除列
+alter table table_name drop column_name;-- 删除列
+
+-- 修改表名
+alter table table_name rename new_table_name;-- 修改表名
+
+-- 清空表数据
+truncate table table_name;-- 清空表数据,不可回滚
+
+-- 删除表
+drop table table_name;-- 删除表,不可回滚
+
+```
