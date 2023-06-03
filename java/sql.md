@@ -134,10 +134,14 @@ select column1, column2 from table_name t1, table_name t2 where t1.column1 = t2.
 
 ```
 
-### DDL (Data Definition Language)
+### DDL 与 DCL
 
-- 创建和管理表
-- 不可回滚
+- DDL(Data Definition Language)：数据定义语言，用来定义数据库对象、
+  - 创建和管理表
+  - 不可回滚
+- DCL(Data Control Language)：数据控制语言，用来定义访问权限和安全级别
+  - 授权
+  - 回滚
 
 #### 创建表
 
@@ -170,7 +174,7 @@ create table table_name(
 | blob        | 二进制数据,最大 4G                                                  |
 | text        | 文本数据,最大 4G                                                    |
 
-#### 修改表
+#### 表管理
 
 ```sql
 -- 添加列
@@ -199,4 +203,80 @@ truncate table table_name;-- 清空表数据,不可回滚
 -- 删除表
 drop table table_name;-- 删除表,不可回滚
 
+-- DCL
+
+COMMIT;-- 提交事务：将事务中的操作永久保存到数据库中
+set autocommit = false;-- 关闭自动提交
+rollback;-- 回滚事务：将事务中的操作全部撤销，回到事务开始前的状态
+
+DELETE FROM table_name;-- 删除表中的数据，可以回滚
+```
+
+### 数据操作
+
+```sql
+-- 插入数据
+insert into table_name values(value1, value2, ... valueN);-- 全部插入，可以省略列名，但是必须按照列顺序插入
+insert into table_name(column1, column2, ... columnN) values(value1, value2, ... valueN);-- 指定列插入，列名和值必须一一对应
+insert into table_name(column1, column2, ... columnN) values(value1, value2, ... valueN), (value1, value2, ... valueN);-- 批量插入
+insert into table_name(column1, column2, ... columnN) select column1, column2, ... columnN from table_name;-- 从其他表中插入数据
+
+-- 更新数据（注意：更新数据时，where 条件必须保证唯一性，否则会更新多条数据）
+update table_name set column1=value1, column2=value2, ... columnN=valueN where condition;-- 更新数据
+
+-- 删除数据（注意：删除数据时，where 条件必须保证唯一性，否则会删除多条数据）
+delete from table_name where condition;-- 删除数据
+```
+
+### 约束
+
+- 约束：对表中的数据进行限制，保证数据的完整性和准确性
+  - 主键约束：primary key
+  - 非空约束：not null
+  - 唯一约束：unique
+  - 外键约束：foreign key
+  - 检查约束：check
+- 约束的分类
+  - 列级约束：添加在某一列上
+  - 表级约束：添加在整张表上
+
+```sql
+create table students(
+    sno char(10) primary key auto_increment, -- 主键,自增
+    'name' varchar(20) not null, -- name为关键字,需要使用''
+    gender char(1) default '男' check(gender in('男','女')), -- 默认值,检查约束
+    email varchar(50) unique, -- 唯一约束
+    class_id int(10) not null, -- 非空约束
+    constraint fk_class foreign key(class_id) references classes(id) -- 外键约束
+);
+
+-- email在t1表中唯一
+create table t1(
+  email varchar(50),
+  constraint t1_email unique(email)
+)
+--组合唯一： email和phone在t2表中唯一，二者完全相同才算重复
+create table t2(
+  email varchar(50),
+  phone varchar(50),
+  constraint t1_email_phone unique(email,phone)
+)
+
+-- 添加约束
+alter table table_name add constraint constraint_name constraint_type(column_name);-- 添加约束
+alter table table_name add constraint constraint_name constraint_type(column_name) references table_name(column_name);-- 添加外键约束
+
+-- 删除唯一约束
+alter table table_name drop INDEX constraint_name;-- 删除索引
+-- 删除外键约束
+alter table table_name drop foreign key constraint_name;-- 删除外键约束
+-- 删除检查约束
+alter table table_name drop check constraint_name;-- 删除检查约束
+-- 删除主键约束
+alter table table_name drop primary key;-- 删除主键约束
+
+-- 级联操作
+-- 级联更新：当主表中的数据更新时，从表中的数据也会更新
+-- 级联删除：当主表中的数据删除时，从表中的数据也会删除
+-- 级联置空：当主表中的数据删除时，从表中的数据置空
 ```
