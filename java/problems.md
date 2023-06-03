@@ -241,3 +241,10 @@ try{
   - WAITING -> BLOCKED : 调用 notify 方法 或 调用 notifyAll 方法, 但是获取不到资源(多线程)
   - TIMED_WAITING -> RUNNABLE : 休眠时间到了
   - TIMED_WAITING -> BLOCKED : 休眠时间到了，但是获取不到资源(多线程)
+
+## JDBC
+
+### 为什么不推荐使用 statement
+
+- SQL 注入问题: 用户输入的数据，拼接到 SQL 语句中，可能会导致 SQL 注入
+- 频繁的创建和销毁资源，影响性能

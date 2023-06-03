@@ -499,3 +499,175 @@ public @interface MyAnnotation {
 }
 
 ```
+
+## JDBC
+
+- Java Database Connectivity，Java 数据库连接，用于执行 SQL 语句
+- 数据持久化：将程序中的数据保存到数据库中
+- JDBC API：Java 提供的用于操作数据库的一套 API
+  - 面向应用的 API：java api，抽象接口，提供给开发者使用（连接数据库、执行 SQL 语句、处理结果集）
+  - 面向数据库的 API：jdbc driver，具体实现，由数据库厂商提供（mysql、oracle、sqlserver）
+
+### java driver
+
+- 4 种类型
+  - JDBC-ODBC 桥接器：将 JDBC 转换为 ODBC，需要安装 ODBC 驱动
+  - 原生 API 驱动：直接连接数据库，需要安装数据库驱动
+  - 网络协议驱动：通过网络协议连接数据库，需要安装数据库驱动
+  - 纯 Java 驱动：直接连接数据库，不需要安装数据库驱动
+- 常用的数据库驱动
+  - mysql：com.mysql.jdbc.Driver
+  - oracle：oracle.jdbc.driver.OracleDriver
+  - sqlserver：com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+#### 连接数据库
+
+1. 安装数据库驱动
+2. 加载驱动类（lib 目录下的 jar 包->Add As Library）
+3. 获取连接
+
+```java
+String driveClassName = "com.mysql.cj.jdbc.Driver";
+Class<?> clazz = Class.forName(driveClassName);
+Driver driver = (Driver) clazz.newInstance();
+String url = "jdbc:mysql://127.0.0.1:3306/databasename?serverTimezone=UTC";
+Properties auth = new Properties();
+auth.setProperty("user", "username");
+auth.setProperty("password", "password");
+Connection conn = driver.connect(url, auth);
+```
+
+#### DriverManager
+
+- 用于管理一组 JDBC 驱动程序的基本服务
+
+手动注册驱动
+
+```java
+String driveClassName = "com.mysql.cj.jdbc.Driver";
+Class<?> clazz = Class.forName(driveClassName);
+Driver driver = (Driver) clazz.newInstance();
+
+// 注册驱动
+DriverManager.registerDriver(driver);
+String url = "jdbc:mysql://127.0.0.1:3306/myemployees?serverTimezone=UTC";
+String user = "root";
+String password = "123456";
+Connection conn = DriverManager.getConnection(url, user, password);
+System.out.println("conn = " + conn);
+```
+
+自动注册驱动
+
+```java
+String driveClassName = "com.mysql.cj.jdbc.Driver";
+String url = "jdbc:mysql://127.0.0.1:3306/myemployees?serverTimezone=UTC";
+String user = "root";
+String password = "123456";
+// 自动加载驱动
+Class.forName(driveClassName); // 会执行静态代码块，自动注册驱动
+Connection conn = DriverManager.getConnection(url, user, password);
+System.out.println("conn = " + conn);
+```
+
+将数据库连接信息写入配置文件
+
+```java
+Properties jdbcProp = new Properties();
+jdbcProp.load(DriverTest.class.getClassLoader().getResourceAsStream("jdbc.properties"));
+// jdbcProp.load(new FileInputStream("src//jdbc.properties"));
+String driverClassName = jdbcProp.getProperty("driverClassName");
+String url = jdbcProp.getProperty("url");
+String user = jdbcProp.getProperty("user");
+String password = jdbcProp.getProperty("password");
+// 自动加载驱动
+Class.forName(driverClassName); // 会执行静态代码块，自动注册驱动
+Connection conn = DriverManager.getConnection(url, user, password);
+System.out.println("conn = " + conn);
+```
+
+#### Connection
+
+- 用于管理与数据库的连接
+
+#### ORM
+
+- Object Relational Mapping，对象关系映射，将对象与数据库表建立映射关系
+- ORM 框架：Hibernate、MyBatis、Spring Data JPA
+
+#### 查询方法的封装
+
+- 返回值类型：利用泛型，返回不同类型的对象
+- 返回值的对象：利用反射，将查询结果封装为对象
+- 结果集：
+  - ResultSetMetaData：获取结果集的元数据
+    - getColumnCount()：获取结果集的列数
+    - getColumnName(int column)：获取指定列的列名
+    - getColumnLabel(int column)：获取指定列的别名
+
+```java
+// 查询方法的封装
+public <T> T[] query(Class<T> clazz, String sql, Object... args) {
+  Connection conn = null;
+  PreparedStatement ps = null;
+  ResultSet rs = null;
+  try {
+    // 获取连接
+    conn = Utils.connect2SQL();
+    // 预编译 SQL 语句
+    ps = conn.prepareStatement(sql);
+    // 设置参数
+    for (int i = 0; i < args.length; i++) {
+      ps.setObject(i + 1, args[i]);
+    }
+    // 执行查询
+    rs = ps.executeQuery();
+    // 获取结果集的元数据
+    ResultSetMetaData rsmd = rs.getMetaData();
+    // 获取结果集的列数
+    int columnCount = rsmd.getColumnCount();
+    // 创建集合对象
+    ArrayList<T> list = new ArrayList<>();
+    // 处理结果集
+    while (rs.next()) {
+      // 获取一条记录的各个字段值
+      // 创建 Map 集合
+      Map<String, Object> map = new HashMap<>();
+      // 处理结果集一行数据中的每一个字段
+      for (int i = 0; i < columnCount; i++) {
+        // 获取列值
+        Object columnValue = rs.getObject(i + 1);
+        // 获取列名:有别名则获取别名，没有则获取列名，必须保证 SQL 语句中的列名与实体类的属性名一致
+        String columnLabel = rsmd.getColumnLabel(i + 1);
+        // 把列名和列值放入 Map 集合中
+        map.put(columnLabel, columnValue);
+      }
+      // 创建 Class 对应的对象
+      T t = clazz.newInstance();
+      // 遍历 Map 集合，给对象的属性赋值
+      for (Map.Entry<String, Object> entry : map.entrySet()) {
+        // 获取属性名
+        String propertyName = entry.getKey();
+        // 获取属性值
+        Object propertyValue = entry.getValue();
+        // 获取属性对应的 Field 对象
+        Field field = clazz.getDeclaredField(propertyName);
+        // 设置属性的访问权限
+        field.setAccessible(true);
+        // 给对象的属性赋值
+        field.set(t, propertyValue);
+      }
+      // 把赋值后的对象添加到集合中
+      list.add(t);
+    }
+    // 返回集合
+    return (T[]) list.toArray();
+  } catch (Exception e) {
+    e.printStackTrace();
+  } finally {
+    // 关闭资源
+    Utils.closeConnection(conn, ps, rs);
+  }
+  return null;
+}
+```

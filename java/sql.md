@@ -78,6 +78,13 @@ select * from table_name where column1 is null;
 
 -- 查询非null值(is not null)
 select * from table_name where column1 is not null;
+
+-- 分页
+select * from table_name where condition limit start, size; -- mysql
+select * from table_name where condition limit size offset start; -- oracle
+
+-- row_number窗口函数：用于分页，去重，排序
+select row_number() over(order by column1) as rownum, column1 from table_name where condition;
 ```
 
 #### 排序(order by)
@@ -265,6 +272,7 @@ create table t2(
 -- 添加约束
 alter table table_name add constraint constraint_name constraint_type(column_name);-- 添加约束
 alter table table_name add constraint constraint_name constraint_type(column_name) references table_name(column_name);-- 添加外键约束
+
 
 -- 删除唯一约束
 alter table table_name drop INDEX constraint_name;-- 删除索引
