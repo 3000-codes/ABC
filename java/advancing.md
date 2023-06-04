@@ -801,3 +801,36 @@ String sql = "insert into user values(null, ?, ?, ?)";
 int update = queryRunner.update(sql, "张三", "123456", "");
 
 ```
+
+## Tomcat
+
+### Tomcat 介绍
+
+- Tomcat 是一个 Web 轻量级应用服务器，是 Apache 软件基金会（Apache Software Foundation）的一个核心项目
+- 启动方式：
+  - 双击`bin`目录下的`startup.bat`文件，要求 JDK 环境变量配置正确
+  - IDEA 中配置 Tomcat，启动方式：点击`Run`菜单中的`Edit Configurations`，点击`+`号，选择`Tomcat Server`，选择`Local`，选择`Tomcat`安装目录，点击`OK`，点击`Run`菜单中的`Run`，启动 Tomcat
+- Tomcat 目录结构
+  - `bin`：存放 Tomcat 的可执行文件
+  - `conf`：存放 Tomcat 的配置文件
+  - `lib`：存放 Tomcat 的 jar 包
+  - `logs`：存放 Tomcat 的日志文件
+  - `temp`：存放 Tomcat 的临时文件
+  - `webapps`：存放 web 项目
+  - `work`：存放 Tomcat 的工作文件
+- Tomcat 的端口号
+  - 8005：关闭 Tomcat 时，接收关闭命令的端口号
+  - 8080：Tomcat 的启动端口号
+  - 8009：Tomcat 与 Apache 之间的端口号
+- Tomcat 的配置文件
+  - `server.xml`：Tomcat 的主配置文件
+  - `web.xml`：web 项目的配置文件
+
+### Tomcat 部署
+
+- 前端页面的部署
+  - 将前端页面放入`webapps`目录下
+  - 访问方式：`http://localhost:8080/项目名/文件名`
+  - 更改默认访问页面：在`webapps`目录下的`WEB-INF`目录下的`web.xml`文件中，修改`welcome-file-list`标签中的`welcome-file`标签的值
+
+
