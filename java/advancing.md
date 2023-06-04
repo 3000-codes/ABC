@@ -671,3 +671,133 @@ public <T> T[] query(Class<T> clazz, String sql, Object... args) {
   return null;
 }
 ```
+
+#### 批量处理
+
+连接数据库的参数加上`rewriteBatchedStatements=true`
+
+```java
+// 批量处理
+public void batch(String sql, Object[]... args) {
+  Connection conn = null;
+  PreparedStatement ps = null;
+  try {
+    // 获取连接
+    conn = Utils.connect2SQL();
+    // 预编译 SQL 语句
+    ps = conn.prepareStatement(sql);
+    // 设置参数
+    for (int i = 0; i < args.length; i++) {
+      for (int j = 0; j < args[i].length; j++) {
+        ps.setObject(j + 1, args[i][j]);
+      }
+
+      // TODO: 增加条数判断
+      ps.addBatch();// 积攒 SQL
+      // 执行 SQL
+      ps.executeBatch();
+      // 清空 SQL
+      ps.clearBatch();
+    }
+  } catch (Exception e) {
+    e.printStackTrace();
+  } finally {
+    // 关闭资源
+    Utils.closeConnection(conn, ps);
+  }
+}
+```
+
+### 数据库连接池
+
+传统模式：
+
+- 在主程序（serlet，beans）中创建连接对象
+- 进行 sql 操作
+- 关闭连接对象
+- 问题：频繁创建和销毁连接对象，影响性能
+
+连接池模式：
+
+- 为数据库连接创建一个“缓冲池”，预先创建一定数量的连接对象，放入缓冲池中
+- 允许用户从缓冲池中获取连接对象，使用完毕后，将连接对象放回缓冲池中
+- 优点：减少创建和销毁连接对象的次数，提高性能
+
+#### DataSource
+
+- 数据源(`javax.sql.DataSource`)：数据库连接池接口
+- 常用实现类：DBCP、C3P0、Druid（阿里巴巴）
+- 包含 连接池 和 连接池管理器
+- 取代 DriverManager 来获取 Connection 对象，获取速度快
+
+##### 处理事务
+
+- 事务：一组逻辑操作单元，使数据从一种状态变换到另一种状态
+- 事务处理：保证所有事务都作为一个工作单元来执行，即使出现了故障，都不能改变这种执行方式
+- 事务处理的特性（ACID）：原子性、一致性、隔离性、持久性
+  - 原子性：事务是一个原子操作单元，其对数据的修改，要么全都执行，要么全都不执行
+  - 一致性：事务执行前后，数据保持一致
+  - 隔离性：事务的执行不会影响其他事务
+  - 持久性：事务完成后，事务对数据库的修改是永久的
+- 事务的并发问题：脏读、不可重复读、幻读
+  - 脏读：一个事务读取到另一个事务未提交的数据
+  - 不可重复读：一个事务读取到另一个事务已提交的 update 数据
+  - 幻读：一个事务读取到另一个事务已提交的 insert 数据
+- 事务的隔离级别：未提交读、已提交读、可重复读、串行化
+  - 未提交读：一个事务可以读取到另一个事务未提交的数据，可能出现脏读、不可重复读、幻读
+  - 已提交读：一个事务只能读取到另一个事务已提交的数据，可能出现不可重复读、幻读
+  - 可重复读：一个事务只能读取到另一个事务已提交的数据，不可重复读、幻读
+  - 串行化：一个事务只能读取到另一个事务已提交的数据，不可重复读、幻读
+- 事务的隔离级别设置：`conn.setTransactionIsolation(int level);`
+  - 未提交读：`conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);`
+  - 已提交读：`conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);`
+  - 可重复读：`conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);`
+  - 串行化：`conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);`
+- 事务的管理：`conn.setAutoCommit(boolean autoCommit);`
+  - 开启事务：`conn.setAutoCommit(false);`
+  - 提交事务：`conn.commit();`
+  - 回滚事务：`conn.rollback();`
+- 操作步骤
+  - 关闭连接的自动提交`conn.setAutoCommit(false);`,关闭自动提交后，需要手动提交事务`conn.commit();`
+  - 执行 SQL 语句
+  - 提交事务`conn.commit();`
+  - 捕获异常，回滚事务`conn.rollback();`
+
+### DBUtils
+
+- Apache 组织提供的一个开源 JDBC 工具类库，封装了 JDBC 操作的很多细节，简化了数据库编程的开发量
+- 优点：简化 JDBC 编程，简化 CRUD 操作，提高开发效率
+- 缺点：不支持事务处理
+
+#### QueryRunner
+
+```java
+// 查询单个对象
+String sql = "select * from user where id = ?";
+Customer customer = queryRunner.query(sql, new BeanHandler<>(Customer.class), 1);
+System.out.println(customer);
+
+// 查询多个对象并存入 List 集合
+String sql = "select * from user";
+List<Customer> list = queryRunner.query(sql, new BeanListHandler<>(Customer.class));
+System.out.println(list);
+
+// 查询多个对象并存入Map集合
+String sql = "select * from user";
+List<Map<String, Object>> list = queryRunner.query(sql, new MapListHandler());
+for (Map<String, Object> map : list) {
+  Set<Map.Entry<String, Object>> entries = map.entrySet();
+  for (Map.Entry<String, Object> entry : entries) {
+    System.out.println(entry.getKey() + " = " + entry.getValue());
+  }
+}
+
+// 查询单个值
+String sql = "select count(*) from user";
+Long count = queryRunner.query(sql, new ScalarHandler<>());
+
+// 执行 insert、update、delete
+String sql = "insert into user values(null, ?, ?, ?)";
+int update = queryRunner.update(sql, "张三", "123456", "");
+
+```

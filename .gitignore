@@ -109,3 +109,7 @@ dist
 *.iws
 *.ipr
 out
+lib
+
+# vscode
+.vscode/
