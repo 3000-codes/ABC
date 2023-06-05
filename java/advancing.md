@@ -863,13 +863,7 @@ int update = queryRunner.update(sql, "张三", "123456", "");
   <servlet-name>hello</servlet-name>
   <!--  servlet 的全类名 -->
   <servlet-class>com.demo.servlet.Hello</servlet-class>
-  <!-- servlet 的启动顺序
-  1. 数字越小，启动越早
-  2. 默认值为 0
-  3. 如果有多个 servlet，可以通过数字来控制启动顺序
-   -->
-  <load-on-startup>1</load-on-startup>
-  <!-- 初始化参数
+    <!-- 初始化参数
     多个的话使用多个init-param包裹
    -->
   <init-param>
@@ -878,7 +872,8 @@ int update = queryRunner.update(sql, "张三", "123456", "");
     <!-- 参数值 -->
     <param-value>root</param-value>
   </init-param>
-
+  <!-- servlet 的启动顺序，可以通过该数字来控制多个servlet启动顺序，默认值为 0，数字越小，启动越早-->
+  <load-on-startup>1</load-on-startup>
 </servlet>
 <!--  servlet 的映射 -->
 <servlet-mapping>
