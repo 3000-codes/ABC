@@ -826,11 +826,193 @@ int update = queryRunner.update(sql, "张三", "123456", "");
   - `server.xml`：Tomcat 的主配置文件
   - `web.xml`：web 项目的配置文件
 
-### Tomcat 部署
+#### Tomcat 部署
 
 - 前端页面的部署
   - 将前端页面放入`webapps`目录下
   - 访问方式：`http://localhost:8080/项目名/文件名`
   - 更改默认访问页面：在`webapps`目录下的`WEB-INF`目录下的`web.xml`文件中，修改`welcome-file-list`标签中的`welcome-file`标签的值
 
+#### IDEA 配置 Tomcat
 
+社区版 IDEA 不支持 Tomcat
+
+- 方式一:`file`->`Setting`->`Build,Execution,Deployment`->`Application Servers`->`+`->`Tomcat Server`->`Local`->`Tomcat`安装目录->`OK`
+- 方式二：`Run`菜单中的`Edit Configurations`->`+`->`Tomcat Server`->`Local`->`Tomcat`安装目录->`OK`
+
+## Servlet
+
+小服务程序，运行在服务器端的程序，用来处理客户端的请求
+
+- 导入 jar 包：`servlet-api.jar`
+  - 需要位于`WEB-INF`目录下,
+- 实现业务的 servlet 接口
+- 配置 web.xml 文件
+- index.html
+
+```xml
+<!-- 上下文参数(全局可使用) -->
+<context-param>
+  <!-- 参数名称 -->
+  <param-name>context-name</param-name>
+  <!-- 参数值 -->
+  <param-value>context-value</param-value>
+</context-param>
+<servlet>
+  <!--  servlet 的名称 -->
+  <servlet-name>hello</servlet-name>
+  <!--  servlet 的全类名 -->
+  <servlet-class>com.demo.servlet.Hello</servlet-class>
+  <!-- servlet 的启动顺序
+  1. 数字越小，启动越早
+  2. 默认值为 0
+  3. 如果有多个 servlet，可以通过数字来控制启动顺序
+   -->
+  <load-on-startup>1</load-on-startup>
+  <!-- 初始化参数
+    多个的话使用多个init-param包裹
+   -->
+  <init-param>
+    <!-- 参数名称 -->
+    <param-name>username</param-name>
+    <!-- 参数值 -->
+    <param-value>root</param-value>
+  </init-param>
+
+</servlet>
+<!--  servlet 的映射 -->
+<servlet-mapping>
+  <!--  servlet 的名称 -->
+  <servlet-name>hello</servlet-name>
+  <!--  servlet 的访问路径 : /项目名/访问路径 -->
+  <url-pattern>/hello</url-pattern>
+</servlet-mapping>
+```
+
+### Servlet 的生命周期
+
+- Servlet 的生命周期：从 Servlet 被创建到 Servlet 被销毁的过程
+- Servlet 的生命周期方法
+  - `构造方法`：Servlet 被创建时执行，只执行一次
+  - `init()`：初始化方法，Servlet 被创建时执行，只执行一次
+  - `service()`：每次请求时执行
+  - `destroy()`：关闭服务器时执行，只执行一次
+- ServletConfig 对象
+  - ServletConfig 对象是 Servlet 的配置对象，Tomcat 创建 Servlet 时，会自动创建 ServletConfig 对象
+  - ServletConfig 对象的作用
+    - 获取 Servlet 的名称
+    - 获取 Servlet 的初始化参数:`servletConfig.getInitParameter("param-name")`
+    - 获取 ServletContext 对象
+  - ServletConfig 对象的获取方式
+    - 通过 Servlet 的 init 方法获取
+    - 通过 ServletConfigEvent 对象获取
+
+### ServletContext
+
+- Servlet 的上下文对象，Tomcat 创建 Servlet 时，会自动创建 ServletContext 对象,代表当前 web 应用
+- 一个 web 应用可以有多个 Servlet，但只有一个 ServletContext 对象
+- ServletContext 对象的作用
+  - 获取 web.xml 中配置的上下文参数:`servletContext.getInitParameter("param-name")`
+  - 获取当前 web 应用的路径:`servletContext.getContextPath()`
+  - 获取当前 web 应用的真实路径:`servletContext.getRealPath("/文件名")`
+  - 获取当前 web 应用的 MIME 类型:`servletContext.getMimeType("文件名")`
+  - 域对象：共享数据
+    - `setAttribute(String name, Object value)`：存储数据
+    - `getAttribute(String name)`：获取数据
+    - `removeAttribute(String name)`：删除数据
+- ServletContext 对象的获取方式
+  - 通过 Servlet 的 init 方法获取
+  - 通过 ServletContextEvent 对象获取
+
+### GenericServlet
+
+- Servlet 接口的抽象实现类，实现了 Servlet 接口的除了 service 方法之外的其他方法
+- 只需要重写 service 方法即可
+- 关注 Servlet 的业务逻辑，不需要关注 Servlet 的生命周期方法
+
+### HttpServlet
+
+- GenericServlet 的子类
+- 重写了 service 方法
+- 控制用户的具体请求方式
+  - `doGet()`：处理 get 请求
+  - `doPost()`：处理 post 请求
+  - `doPut()`：处理 put 请求
+  - `doDelete()`：处理 delete 请求
+  - `doHead()`：处理 head 请求
+  - `doOptions()`：处理 options 请求
+  - `doTrace()`：处理 trace 请求
+
+### HttpServletRequest
+
+- ServletRequest 的子接口
+- 服务器接收到的请求报文解析后的对象
+- 在 service 方法中，会自动创建 HttpServletRequest 对象
+- 可以获取请求方式、请求参数、请求头、请求地址等信息
+
+  - `getMethod()`：获取请求方式
+  - `getParameter(String name)`：获取请求参数
+  - `getParameterValues(String name)`：获取请求参数，参数的多个值
+  - `getParameterMap()`：获取所有请求参数
+
+  - `getScheme()`：获取协议名称
+  - `getServerName()`：获取服务器名称
+  - `getServerPort()`：获取服务器端口号
+  - `getContextPath()`：获取项目路径
+
+  - `getHeader(String name)`：获取请求头
+  - `getHeaderNames()`：获取所有请求头的名称
+  - `getInputStream()`：获取请求体的字节输入流
+  - `getReader()`：获取请求体的字符输入流
+  - `getRequestURL()`：获取请求的完整路径
+  - `getRequestURI()`：获取请求的资源路径
+  - `getQueryString()`：获取请求的参数部分
+  - `getRemoteAddr()`：获取客户端的 ip 地址
+
+- 请求转发(可以是页面资源,也可以是 Servlet 资源)
+  - 服务器内部的资源跳转方式
+  - 浏览器地址栏不发生变化
+  - 只能转发到当前服务器内部资源中
+  - `request.getRequestDispatcher("/路径").forward(request, response)`
+    - `request.getRequestDispatcher("/pageB.html").forward(request, response)` : 转发到页面资源
+    - `request.getRequestDispatcher("/servletB").forward(request, response)`: 转发到 Servlet 资源,可以触发 Servlet 的生命周期方法
+- Request 域共享数据(必须保证转发前后是同一个 request 对象)
+  - `request.setAttribute(String name, Object value)`：存储数据
+  - `request.getAttribute(String name)`：获取数据
+  - `request.removeAttribute(String name)`：删除数据
+
+### HttpServletResponse
+
+- ServletResponse 的子接口
+- 服务器将要响应给客户端的响应报文解析后的对象
+- 在 service 方法中，会自动创建 HttpServletResponse 对象
+- 可以设置响应状态码、响应头、响应体等信息
+  - `setStatus(int sc)`：设置响应状态码
+  - `setHeader(String name, String value)`：设置响应头
+  - `setContentType(String type)`：设置响应体的 MIME 类型
+  - `getOutputStream()`：获取字节输出流
+  - `getWriter()`：获取字符输出流
+    - `response.getWriter().write("hello")` :发送响应体给客户端
+  - `sendRedirect(String location)`：重定向(302)
+    - 服务器将客户端重定向到新的资源
+    - 浏览器地址栏发生变化
+    - 重定向可以访问任意资源
+    - `response.sendRedirect("/路径")`
+  - `sendError(int sc, String msg)`：设置响应状态码和响应体
+    - `response.sendError(404, "页面不存在")`
+
+### 乱码问题
+
+- 请求乱码
+  - GET 请求
+    - Tomcat 8 之前默认使用 ISO-8859-1 编码，Tomcat 8 之后默认使用 UTF-8 编码
+    - 修改 Tomcat 的配置文件 server.xml
+      - `<Connector port="8080" protocol="HTTP/1.1" connectionTimeout="20000" redirectPort="8443" URIEncoding="UTF-8"/>`
+  - POST 请求:
+    - 提交表单或文件时,如果统一使用 UTF-8 编码,则需要在获取请求参数之前设置编码格式
+    - `request.setCharacterEncoding("UTF-8")`
+- 响应乱码
+  - 设置响应体的 MIME 类型
+    - `response.setContentType("text/html;charset=UTF-8")`
+  - 设置响应头
+    - `response.setHeader("Content-Type", "text/html;charset=UTF-8")`
