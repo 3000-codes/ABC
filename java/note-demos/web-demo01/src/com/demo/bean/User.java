@@ -2,6 +2,11 @@ package com.demo.bean;
 
 import java.io.Serializable;
 public class User implements Serializable {
+    private Integer id;
+    private String username;
+    private String password;
+    private String email;
+
     public Integer getId() {
         return id;
     }
@@ -34,8 +39,5 @@ public class User implements Serializable {
         this.email = email;
     }
 
-    private Integer id;
-    private String username;
-    private String password;
-    private String email;
+
 }

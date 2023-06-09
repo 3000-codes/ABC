@@ -1011,3 +1011,57 @@ int update = queryRunner.update(sql, "张三", "123456", "");
     - `response.setContentType("text/html;charset=UTF-8")`
   - 设置响应头
     - `response.setHeader("Content-Type", "text/html;charset=UTF-8")`
+
+### 域数据共享
+
+- 请求域: 一次请求的范围(请求层面)
+  - `request.setAttribute(String name, Object value)`：存储数据
+  - `request.getAttribute(String name)`：获取数据
+  - `request.removeAttribute(String name)`：删除数据
+- 会话域: 一次会话的范围(浏览器层面)
+  - `request.getSession()`：获取会话对象
+  - `session.setAttribute(String name, Object value)`：存储数据
+  - `session.getAttribute(String name)`：获取数据
+  - `session.removeAttribute(String name)`：删除数据
+- 应用域: 一次应用的范围(服务器层面)
+  - `application.setAttribute(String name, Object value)`：存储数据
+  - `application.getAttribute(String name)`：获取数据
+  - `application.removeAttribute(String name)`：删除数据
+
+```java
+@Override
+protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    // 请求域
+    req.setAttribute("name", "zhangsan");
+    // 会话域
+    HttpSession session = req.getSession();
+    session.setAttribute("name", "lisi");
+    // 应用域
+    ServletContext application = req.getServletContext();
+    application.setAttribute("name", "wangwu");
+    // 请求转发
+    req.getRequestDispatcher("/pageB.html").forward(req, resp);
+}
+```
+
+## MVC
+
+- MVC 模式
+  - Model：模型，负责处理业务逻辑
+  - View：视图，负责展示数据
+  - Controller：控制器，数据变化的时候，控制器负责调用模型处理数据，然后通知视图更新数据
+- 结构说明
+  - Controller：数据的流转和控制,主要来源前端请求
+    - 路由：根据请求的 url,调用对应的方法
+    - 业务逻辑：调用 Service 层的方法
+    - 数据转发：将数据转发给视图
+  - Service：业务逻辑处理
+    - 调用 Dao 层的方法
+    - 处理业务逻辑
+  - Dao：数据持久化
+    - DaoImpl：实现类
+    - 操作数据库
+    - 操作文件
+  - Bean：实体类
+    - 封装数据
+    - 提供 get/set 方法
