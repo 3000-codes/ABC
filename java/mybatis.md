@@ -70,11 +70,24 @@ password=123456
   - 限制了传参个数，如果需要传入多个参数，需要将参数封装成 map 或者 pojo
   - 返回结果只有 Object 和 List，如果需要返回 map，需要自己写代码
 - mybatis 的使用
-  - 创建实体的mapper接口（不允许存在重载方法）
-  - 创建实体的mapper.xml文件
-  - 在mybatis的配置文件中，配置mapper.xml文件的位置
-  - 在mybatis的配置文件中，加载mapper.xml文件
-  - 使用mybatis的动态代理机制，使用mapper接口对象
+  - 创建实体的 mapper 接口（不允许存在重载方法）
+  - 创建实体的 mapper.xml 文件
+  - 在 mybatis 的配置文件中，配置 mapper.xml 文件的位置
+  - 在 mybatis 的配置文件中，加载 mapper.xml 文件
+  - 使用 mybatis 的动态代理机制，使用 mapper 接口对象
+
+### mapper.xml 的参数处理
+
+- 如果是单个参数，直接使用 #{value}/${value} 获取参数值，value 可以任意命名
+  - `select * from user where id = #{id}`
+- 如果是实体类，直接使用 #{key} 获取属性值，key 是实体类的属性名
+  - `insert into user(id, name, pwd) values(#{id}, #{name}, #{pwd})`
+- 如果是 Map，直接使用 #{key} 获取 value，key 是 Map 的 key
+  - `insert into user(id, name, pwd) values(#{id}, #{name}, #{pwd})`
+- 如果是多个参数，无法直接获取参数值
+  - 将多个参数封装成 Map 或者实体类`select * from user where id = #{arg0} and name = #{arg1}`
+  - 使用 @Param 注解指定参数名`select * from entity where entity_id = #{id} and entity_name = #{name}`
+    - 在 mapper 接口中，使用 @Param 注解来指定参数名`User getUserByIdAndName(@Param("id") int id, @Param("name") String name);`
 
 ### 代理模式
 
@@ -100,3 +113,23 @@ password=123456
 - MyBatis 为 Dao 接口生成代理对象的步骤
   - 使用 SqlSession.getMapper(Dao.class) 获取 Dao 接口对应的代理对象
   - 代理对象执行增删改查方法时，会调用 SqlSession 对应的增删改查方法
+
+## 开启日志
+
+- 在 mybatis 的配置文件中，配置 settings 标签，开启日志
+
+```xml
+<settings>
+<!--
+  logImpl：日志的实现类
+    SLF4J_LOGGING：使用 slf4j 的日志实现类
+    LOG4J_LOGGING：使用 log4j 的日志实现类
+    LOG4J2_LOGGING：使用 log4j2 的日志实现类
+    JDK_LOGGING：使用 jdk 的日志实现类
+    COMMONS_LOGGING：使用 apache 的日志实现类
+    STDOUT_LOGGING：使用标准输出流的日志实现类
+    NO_LOGGING：不使用日志实现类
+ -->
+  <setting name="logImpl" value="STDOUT_LOGGING" />
+</settings>
+```
