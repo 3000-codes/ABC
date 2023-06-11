@@ -110,6 +110,7 @@ dist
 *.ipr
 out
 lib
+target
 
 # vscode
 .vscode/
