@@ -89,6 +89,40 @@ password=123456
   - 使用 @Param 注解指定参数名`select * from entity where entity_id = #{id} and entity_name = #{name}`
     - 在 mapper 接口中，使用 @Param 注解来指定参数名`User getUserByIdAndName(@Param("id") int id, @Param("name") String name);`
 
+### mapper.xml 的返回值类型
+
+- select 标签:`resultType="实体类的全限定名"`(本质是泛型)或 myBatis 提供的别名
+- insert、update、delete 标签:`resultType="java.lang.Integer"`(返回受影响的行数)
+- 主键回填的三种方式
+
+  - 在 mapper.xml 中，使用 selectKey 标签配置主键回填,需要另外执行一条查询语句生成主键
+
+  ```xml
+  <insert id="addUser">
+    <selectKey keyProperty="userId" keyColumn="user_id" resultType="java.lang.Integer" order="AFTER">
+      select last_insert_id()
+    </selectKey>
+    insert into user(name, pwd) values(#{name}, #{pwd})
+  </insert>
+
+  ```
+
+  - 在 insert 标签中，使用 useGeneratedKeys(自增长 key) 和 keyProperty(实体类的属性),keyColumn(表的列) 属性来指定主键回填的属性
+
+  ```xml
+  <insert id="addUser" useGeneratedKeys="true" keyProperty="userId" keyColumn="user_id">
+    insert into user(name, pwd) values(#{name}, #{pwd})
+  </insert>
+  ```
+
+  - 在实体类的主键属性上，使用 @Id 和 @GeneratedValue 注解来指定主键生成策略
+
+  ```java
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Integer userId;
+  ```
+
 ### 代理模式
 
 - 代理模式是一种设计模式，提供了对目标对象另外的访问方式；即通过代理对象访问目标对象。这样做的好处是：可以在目标对象实现的基础上，增强额外的功能操作，即扩展目标对象的功能。
@@ -132,4 +166,35 @@ password=123456
  -->
   <setting name="logImpl" value="STDOUT_LOGGING" />
 </settings>
+```
+
+### 第三方日志集成
+
+- MyBatis 支持第三方日志的集成，如 log4j、log4j2、slf4j、commons-logging 等
+- 集成步骤
+  - 导入第三方日志的 jar 包
+  - 在 mybatis 的配置文件中，配置 settings 标签，开启日志
+  - 在类路径下，添加日志的配置文件
+  - 在日志的配置文件中，配置日志的级别和输出位置
+
+## MyBatis 的 settings 标签
+
+- MyBatis 的 settings 标签用于配置 MyBatis 的运行时行为
+
+### 主键回显
+
+- 在 mapper.xml 中，使用 selectKey 标签来实现主键回显
+  - selectKey 标签的属性
+    - keyProperty：指定主键的属性名
+    - order：指定 selectKey 的执行顺序，有 before 和 after 两个值
+    - resultType：指定返回值的类型
+    - statementType：指定执行的 sql 语句类型
+    - keyColumn：指定主键列名
+    - sql 语句
+
+```xml
+<selectKey keyProperty="id" order="before" resultType="int" statementType="PREPARED">
+  select last_insert_id()
+</selectKey>
+
 ```
