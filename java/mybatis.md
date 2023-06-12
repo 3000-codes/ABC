@@ -170,12 +170,170 @@ password=123456
 
 ### 第三方日志集成
 
+- 日志级别
+  - error：输出捕获的异常信息
+  - warn：输出警告信息
+  - info：输出一些提示信息
+  - debug：输出 debug 信息
 - MyBatis 支持第三方日志的集成，如 log4j、log4j2、slf4j、commons-logging 等
 - 集成步骤
   - 导入第三方日志的 jar 包
   - 在 mybatis 的配置文件中，配置 settings 标签，开启日志
   - 在类路径下，添加日志的配置文件
   - 在日志的配置文件中，配置日志的级别和输出位置
+
+#### SLF4J+logback
+
+1. `pom.xml`导入依赖
+
+```xml
+
+<dependency>
+  <groupId>ch.qos.logback</groupId>
+  <artifactId>logback-classic</artifactId>
+  <version>1.2.3</version>
+</dependency>
+```
+
+2. `logback.xml`配置文件(放在`main/resources`目录下)
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <!-- 定义日志的输出格式 -->
+  <property name="pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n" />
+  <!-- 定义日志的输出位置 -->
+  <property name="logPath" value="D:/logs/mybatis.log" />
+  <!-- 定义日志的输出级别 -->
+  <property name="level" value="debug" />
+  <!-- 定义日志的输出器 -->
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder><!-- 日志输出格式 -->
+      <pattern>${pattern}</pattern>
+      <charset>UTF-8</charset>
+    </encoder>
+  </appender>
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${logPath}</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${logPath}.%d{yyyy-MM-dd}.gz</fileNamePattern>
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>${pattern}</pattern>
+    </encoder>
+  </appender>
+  <!-- 定义日志的输出器的最低级别 -->
+  <root level="${level}">
+    <appender-ref ref="STDOUT" />
+    <appender-ref ref="FILE" />
+  </root>
+</configuration>
+
+```
+
+3. Slf4j 的使用
+
+```java
+public class MyTest{
+  private Logger logger=LoggerFactory.getLogger(MyTest.class);
+
+  @Test
+  public void test(){
+    logger.debug("debug");
+    logger.info("info");
+    logger.warn("warn");
+    logger.error("error");
+  }
+}
+```
+
+4. lombok 添加 Slf4j 注解
+
+```java
+@Slf4j
+public class MyTest {
+  @Test
+  public void test() {
+    log.debug("debug");
+    log.info("info");
+    log.warn("warn");
+    log.error("error");
+  }
+}
+
+```
+
+5. mybatis 的配置文件中，配置 settings 标签，开启日志
+
+```xml
+<settings>
+  <setting name="logImpl" value="SLF4J" />
+</settings>
+```
+
+#### JCL+log4j
+
+1. `pom.xml`导入依赖
+
+```xml
+<dependency>
+  <groupId>log4j</groupId>
+  <artifactId>log4j</artifactId>
+  <version>1.2.17</version>
+</dependency>
+```
+
+2. `log4j.properties`配置文件(也可以是 xml 文件，放在`main/resources`目录下)
+
+```properties
+# 定义日志的输出格式
+log4j.appender.stdout.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c{50} - %m%n
+# 定义日志的输出位置
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+# 定义日志的输出级别
+log4j.rootLogger=debug,stdout
+# ...
+```
+
+3. JCL 的使用
+
+```java
+public class MyTest {
+  private Logger logger = Logger.getLogger(MyTest.class);
+
+  @Test
+  public void test() {
+    logger.debug("debug");
+    logger.info("info");
+    logger.warn("warn");
+    logger.error("error");
+  }
+}
+```
+
+4. lombok 添加 JCL 注解
+
+```java
+@Log4j
+public class MyTest {
+  @Test
+  public void test() {
+    log.debug("debug");
+    log.info("info");
+    log.warn("warn");
+    log.error("error");
+  }
+}
+```
+
+5. mybatis 的配置文件中，配置 settings 标签，开启日志
+
+```xml
+<settings>
+  <setting name="logImpl" value="LOG4J" />
+</settings>
+```
 
 ## MyBatis 的 settings 标签
 
@@ -196,5 +354,58 @@ password=123456
 <selectKey keyProperty="id" order="before" resultType="int" statementType="PREPARED">
   select last_insert_id()
 </selectKey>
+
+```
+
+## 动态 SQL
+
+- 动态 SQL 是 MyBatis 的强大特性之一，它可以让我们在 XML 映射文件内，以 XML 标签的形式编写动态 SQL，完成逻辑判断和动态拼接 SQL 语句的功能
+- 动态 SQL 标签
+  - if 标签 ：用于判断条件是否成立，如果成立，则执行 if 标签内的 sql 语句
+  - choose(when,otherwise) 标签 ：类似于 Java 中的 switch 语句，用于判断条件是否成立，如果成立，则执行 when 标签内的 sql 语句，否则执行 otherwise 标签内的 sql 语句
+  - trim(where,set) 标签 ：用于对 sql 语句进行动态拼接，可以在 sql 语句的前后加上指定的字符串
+  - foreach 标签 ：用于遍历集合或数组，可以将集合或数组中的元素取出，组成一个新的 sql 语句
+  - bind 标签 ：用于将 sql 语句中的某个值绑定到指定的变量上，可以在 sql 语句中使用该变量
+
+```xml
+<!--
+where+if
+  where 标签会自动去掉第一个多余的 and 或 or
+ -->
+<select id="queryUser" returnType="User">
+select * from users
+  <where>
+    <if test="username!=null and username!=''">
+      and username=#{username}
+    </if>
+    <if test="gender!=null and gender=0">
+    or gender=#{gender}
+    </if>
+  </where>
+</select>
+
+<!--
+set+if
+  set 标签会自动去掉第一个多余的 ,
+ -->
+<update id="updateUser" parameterType="User">
+update user
+  <set>
+    <if test="username!=null and username!=''">
+      username=#{username},
+    </if>
+    <if test="gender!=null and gender=0">
+      gender=#{gender}
+    </if>
+  </set>
+where id=#{id}
+</update>
+
+<!--
+choose(when,otherwise)
+  类似于 Java 中的 switch 语句
+ -->
+<select id="queryUser" returnType="User">
+
 
 ```
