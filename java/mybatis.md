@@ -360,52 +360,146 @@ public class MyTest {
 ## 动态 SQL
 
 - 动态 SQL 是 MyBatis 的强大特性之一，它可以让我们在 XML 映射文件内，以 XML 标签的形式编写动态 SQL，完成逻辑判断和动态拼接 SQL 语句的功能
-- 动态 SQL 标签
-  - if 标签 ：用于判断条件是否成立，如果成立，则执行 if 标签内的 sql 语句
-  - choose(when,otherwise) 标签 ：类似于 Java 中的 switch 语句，用于判断条件是否成立，如果成立，则执行 when 标签内的 sql 语句，否则执行 otherwise 标签内的 sql 语句
-  - trim(where,set) 标签 ：用于对 sql 语句进行动态拼接，可以在 sql 语句的前后加上指定的字符串
-  - foreach 标签 ：用于遍历集合或数组，可以将集合或数组中的元素取出，组成一个新的 sql 语句
-  - bind 标签 ：用于将 sql 语句中的某个值绑定到指定的变量上，可以在 sql 语句中使用该变量
+
+### if 标签
+
+- if 标签用于判断条件是否成立，如果成立，则执行 if 标签内的 sql 语句
 
 ```xml
+<!-- 场景1:添加条件 -->
+<select id="findActiveBlogWithTitleLike"
+     resultType="Blog">
+  SELECT * FROM BLOG
+  WHERE state = ‘ACTIVE’
+  <if test="title != null">
+    AND title like #{title}
+  </if>
+    <if test="author != null and author.name != null">
+    AND author_name like #{author.name}
+  </if>
+</select>
+
+  <!--    如果场景1中的 state 也需要传入呢?  -->
+<select id="findActiveBlogLike"
+     resultType="Blog">
+  SELECT * FROM BLOG
+  WHERE
+  <if test="state != null">
+    state = #{state}
+  </if>
+  <if test="title != null">
+    AND title like #{title}
+  </if>
+  <if test="author != null and author.name != null">
+    AND author_name like #{author.name}
+  </if>
+</select>
 <!--
-where+if
-  where 标签会自动去掉第一个多余的 and 或 or
+  我们发现当所有条件都不符合时:`SELECT * FROM BLOG WHERE` 会报错
+  只有第二个条件符合时:`SELECT * FROM BLOG WHERE AND title like #{title}` 会报错
+  解决方案一: 使用 where 1=1
+  解决方案二: 使用<where>标签,where标签会自动去掉第一个多余的and或者or
+  方案三: 使用<trim>标签,trim标签可以去掉前缀或者后缀
  -->
-<select id="queryUser" returnType="User">
-select * from users
+ <!--  解决方案二: 使用<where>标签  -->
+<select id="findActiveBlogLike"
+     resultType="Blog">
+  SELECT * FROM BLOG
   <where>
-    <if test="username!=null and username!=''">
-      and username=#{username}
+    <if test="state != null">
+         state = #{state}
     </if>
-    <if test="gender!=null and gender=0">
-    or gender=#{gender}
+    <if test="title != null">
+        AND title like #{title}
+    </if>
+    <if test="author != null and author.name != null">
+        AND author_name like #{author.name}
     </if>
   </where>
 </select>
 
+<!--  解决方案三: 使用<trim>标签  -->
+<select id="findActiveBlogLike"
+     resultType="Blog">
+  SELECT * FROM BLOG
+  <trim prefix="WHERE" prefixOverrides="AND |OR ">
+    <if test="state != null">
+         state = #{state}
+    </if>
+    <if test="title != null">
+        AND title like #{title}
+    </if>
+    <if test="author != null and author.name != null">
+        AND author_name like #{author.name}
+    </if>
+  </trim>
+</select>
+
 <!--
-set+if
-  set 标签会自动去掉第一个多余的 ,
- -->
-<update id="updateUser" parameterType="User">
-update user
+  场景二:更新数据
+  方案一: set标签会自动去掉最后一个多余的逗号
+  方案二: 使用<trim>标签,trim标签可以去掉前缀或者后缀
+-->
+
+<update id="updateAuthorIfNecessary">
+  update Author
   <set>
-    <if test="username!=null and username!=''">
-      username=#{username},
-    </if>
-    <if test="gender!=null and gender=0">
-      gender=#{gender}
-    </if>
+    <if test="username != null">username=#{username},</if>
+    <if test="password != null">password=#{password},</if>
+    <if test="email != null">email=#{email},</if>
+    <if test="bio != null">bio=#{bio}</if>
   </set>
-where id=#{id}
+  where id=#{id}
+</update>
+<!-- or -->
+<update id="updateAuthorIfNecessary">
+  update Author
+  <trim prefix="set" suffixOverrides=",">
+    <if test="username != null">username=#{username},</if>
+    <if test="password != null">password=#{password},</if>
+    <if test="email != null">email=#{email},</if>
+    <if test="bio != null">bio=#{bio}</if>
+  </trim>
+  where id=#{id}
 </update>
 
-<!--
-choose(when,otherwise)
-  类似于 Java 中的 switch 语句
- -->
-<select id="queryUser" returnType="User">
+```
 
+### choose(when,otherwise) 标签
+
+- choose 标签类似于 Java 语言中的 switch 语句，when 标签类似于 switch 语句中的 case 标签，otherwise 标签类似于 switch 语句中的 default 标签
+
+```xml
+<select id="findActiveBlogLike"
+     resultType="Blog">
+  SELECT * FROM BLOG WHERE state = ‘ACTIVE’
+  <choose>
+    <when test="title != null">
+      AND title like #{title}
+    </when>
+    <when test="author != null and author.name != null">
+      AND author_name like #{author.name}
+    </when>
+    <otherwise>
+      AND featured = 1
+    </otherwise>
+  </choose>
+```
+
+### foreach 标签
+
+- foreach 标签用于遍历集合或数组，可以在 foreach 标签中使用 index 属性来获取当前索引，item 属性来获取当前元素
+- 用场景是对集合进行遍历（尤其是在构建 IN 条件语句的时候）
+
+```xml
+<select id="selectPostIn" resultType="domain.blog.Post">
+  SELECT *
+  FROM POST P
+  WHERE ID in
+  <foreach item="item" index="index" collection="list"
+      open="(" separator="," close=")">
+        #{item}
+  </foreach>
+</select>
 
 ```

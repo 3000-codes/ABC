@@ -90,6 +90,218 @@ snakeCase("Hello World"); // => hello_world
   - 管道是数据驱动,组合是函数驱动.
   - 管道是数据流动,组合是函数嵌套.
 
+#### 结合律
+
+- 结合律是什么?
+  - 结合律是指函数组合可以结合成任意形式.
+  - 结合律是指函数组合可以从右到左,也可以从左到右.
+  - 结合律是指函数组合可以从里到外,也可以从外到里.
+  - 结合律是指函数组合可以结合成任意形式.
+
+```js
+// 结合律
+compose(f, compose(g, h)) == compose(compose(f, g), h);
+
+// 使用结合律打包组合函数
+var loudLastUpper = compose(exclaim, toUpperCase, head, reverse);
+// 或
+var last = compose(head, reverse);
+var loudLastUpper = compose(exclaim, toUpperCase, last);
+
+// 或
+var last = compose(head, reverse);
+var angry = compose(exclaim, toUpperCase);
+var loudLastUpper = compose(angry, last);
+```
+
 ### 组合如何 debug
 
-https://github.com/llh911001/mostly-adequate-guide-chinese/blob/master/ch5.md
+```js
+// 1. 使用 trace
+const trace = (label) => (value) => {
+  console.log(`${label}: ${value}`);
+  return value;
+};
+
+//
+const dasherize = compose(
+  join("-"),
+  toLower,
+  split(" "),
+  replace(/\s{2,}/gi, " ")
+);
+dasherize("The world is a vampire"); // the-world-is-a-vampire
+
+const dasherize = compose(
+  join("-"),
+  toLower,
+  trace("after split"),
+  split(" "),
+  replace(/\s{2,}/gi, " ")
+);
+
+dasherize("The world is a vampire");
+// after split: The,world,is,a,vampire
+// the-world-is-a-vampire
+
+// 2. 使用 tap
+const tap = (fn) => (value) => {
+  fn(value);
+  return value;
+};
+
+const dasherize = compose(
+  join("-"),
+  toLower,
+  tap(trace("after split")),
+  split(" "),
+  replace(/\s{2,}/gi, " ")
+);
+
+dasherize("The world is a vampire"); // after split: The,world,is,a,vampire
+
+// 3. 使用 debug
+const debug =
+  (fn) =>
+  (...args) => {
+    const result = fn(...args);
+    console.log(fn.name, args, "->", result);
+    return result;
+  };
+```
+
+## 函子(Functor)
+
+函子(representative functor)是范畴论里的概念，指从任意范畴到集合范畴的一种特殊函子。 我们没有办法避免副作用，但是我们尽可能的将副作用控制在可控的范围内，我们可以通过函子去处理副作用，我们也可以通过函子去处理异常，异步操作等。
+
+- 函子的特点
+  - 函子是实现了`map`契约的对象.
+  - 函子是一个容器,它包含了值和值的变形关系(这个变形关系就是函数).
+  - 函子可以是一个`类`(具有`map`方法),也可以是一个`纯对象`(包含`map`方法).
+  - 函子的价值在于可以把运算推迟到必要的时候进行.
+  - 函子的`map`方法接收一个函数作为参数,这个函数的返回值也是一个函子.
+  - 函子的`map`方法运行函数时,会自动提取值进行处理.
+  - 函子的`map`方法返回一个新的函子,因此可以链式调用多个`map`方法.
+  - 函子的`map`方法是可以组合的,组合之后的函数和单独调用`map`方法的结果是一样的.
+
+```js
+function Container(value) {
+  this._value = value;
+}
+
+Container.of = function (value) {
+  return new Container(value);
+};
+
+Container.prototype.map = function (fn) {
+  return Container.of(fn(this._value));
+};
+
+const container = Container.of(3)
+  .map((x) => x + 1)
+  .map((x) => x * x); // Container(16)
+```
+
+### Maybe 函子
+
+- Maybe 函子的作用就是可以对外部的空值情况进行处理,提升程序的健壮性.
+
+```js
+Container.prototype.isNothing = function () {
+  return this._value === null || this._value === undefined;
+};
+
+const container = Container.of().map((x) => x.toUpperCase()); // Container(null)
+```
+
+### Either 函子
+
+- Either 函子的作用是处理异常情况,它的内部有两个值:`left`和`right`,分别对应处理异常的情况和正确的情况.
+
+```js
+class Left {
+  static of(value) {
+    return new Left(value);
+  }
+
+  constructor(value) {
+    this._value = value;
+  }
+
+  map(fn) {
+    return this; // !!!注意: 这里忽略 fn,直接返回自身
+  }
+}
+
+class Right {
+  static of(value) {
+    return new Right(value);
+  }
+
+  constructor(value) {
+    this._value = value;
+  }
+
+  map(fn) {
+    return Right.of(fn(this._value)); // !!!注意: 这里返回新的 Right 函子
+  }
+}
+
+const parseJSON = (str) => {
+  try {
+    return Right.of(JSON.parse(str));
+  } catch (e) {
+    return Left.of({ error: e.message });
+  }
+};
+
+parseJSON("{ name: zs }").map((x) => x.name.toUpperCase()); // Left({ error: "Unexpected token n in JSON at position 2" })
+```
+
+### IO 函子
+
+- IO 函子的作用是延迟执行,把不纯的操作交给调用者处理.
+
+```js
+class IO {
+  static of(value) {
+    return new IO(function () {
+      return value;
+    });
+  }
+
+  constructor(fn) {
+    this._value = fn; // 保存函数
+  }
+
+  map(fn) {
+    return new IO(compose(fn, this._value)); // 将函数组合起来,作为新的IO函子的函数
+  }
+}
+```
+
+### Task 函子
+
+- Task 函子的作用是用来处理异步操作的,它的内部也是使用的 IO 函子.
+
+```js
+class Task {
+  static of(value) {
+    return new Task(function (reject, resolve) {
+      resolve(value);
+    });
+  }
+
+  constructor(fn) {
+    this._value = fn;
+  }
+
+  map(fn) {
+    return new Task((reject, resolve) => {
+      this._value(reject, (data) => {
+        resolve(fn(data));
+      });
+    });
+  }
+}
+```

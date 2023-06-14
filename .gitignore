@@ -109,7 +109,7 @@ dist
 *.iws
 *.ipr
 out
-lib
+java/**/lib
 target
 
 # vscode
