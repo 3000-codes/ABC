@@ -245,3 +245,128 @@ context.close();
 </property>
 
 ```
+
+#### 自动装配
+
+- 自动装配：Spring 会在上下文中自动寻找，并自动给 Bean 赋值
+- 自动装配的方式：
+  - byName：根据属性名自动装配,等同与 getBean("clazzid")
+  - byType：根据属性类型自动装配，等同于 getBean(Clazz.class)
+  - constructor：类似于 byType，但是是应用于构造方法的参数，如果有多个参数，会根据参数类型自动装配
+- 自动装配的要求：
+  - 要装配的属性必须存在于 Spring 的 IoC 容器中
+  - 装配的属性在容器中必须是唯一的
+- 自动装配的实现：
+  - 使用 autowire 属性实现自动装配
+  - 使用注解实现自动装配
+
+```xml
+<!-- 自动装配 -->
+<bean id="user" class="com.example.spring.User" autowire="byName">
+    <property name="name" value="张三"/>
+</bean>
+<bean id="address" class="com.example.spring.Address">
+    <property name="city" value="北京"/>
+    <property name="street" value="天安门"/>
+</bean>
+```
+
+```java
+// bean 的声明
+@Data
+public class User {
+    private String name;
+    private Integer age;
+    private Address address; // 自动装配的id必须和属性名一致
+}
+
+// 测试
+@Test
+public void testAutoWired() {
+    ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+    User user = context.getBean("user", User.class);
+    System.out.println(user);
+}
+```
+
+#### 集合 bean
+
+```xml
+<!-- 集合bean -->
+<util:list id="list">
+  <bean class="com.example.spring.User">
+      <property name="name" value="张三"/>
+      <property name="age" value="18"/>
+  </bean>
+  <bean class="com.example.spring.User">
+      <property name="name" value="李四"/>
+      <property name="age" value="19"/>
+  </bean>
+  </util:list>
+```
+
+```java
+// bean 的声明
+@Data
+public class User {
+    private String name;
+    private Integer age;
+    private Address address; // 自动装配的id必须和属性名一致
+}
+
+// 测试
+@Test
+public void testAutoWired() {
+    ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+    List<User> list = context.getBean("list", List.class); // 获取集合bean
+    System.out.println(list);
+    context.close();
+}
+```
+
+### FactoryBean
+
+- FactoryBean 是一个接口，Spring 中有很多的实现类，可以用来创建对象
+- FactoryBean 可以创建复杂的对象
+  - 例如：SqlSessionFactoryBean 可以创建 SqlSessionFactory 对象
+  - 单例对象
+  - 读取外部配置文件
+- FactoryBean 创建的对象会交给 Spring 管理
+- FactoryBean 创建的对象，如果想要获取本身，需要在 id 前面加上 & 符号
+- 使用方法：
+  - 创建一个类
+  - 实现 FactoryBean 接口
+  - 在 Spring 配置文件中声明 `实现类` 的 bean
+    - 无法通过 property 标签设置属性，需要在实现类中设置
+  - 配置文件检测到工厂 bean，会调用 getObject() 方法创建对象，如果是单例，会将对象放入 Spring 容器中，如果是多例，每次获取都会创建一个新的对象，然后将对象存储在 Spring 容器中
+
+```java
+// 实现FactoryBean接口
+public class MyFactoryBean implements FactoryBean<User> {
+    // 返回创建的对象
+    @Override
+    public User getObject() throws Exception {
+        User user = new User();
+        user.setName("张三");
+        user.setAge(18);
+        return user;
+    }
+
+    // 返回创建的对象的类型
+    @Override
+    public Class<?> getObjectType() {
+        return User.class;
+    }
+
+    // 是否单例
+    @Override
+    public boolean isSingleton() {
+        return false;
+    }
+}
+```
+
+```xml
+<!-- 声明FactoryBean -->
+<bean id="myFactoryBean" class="com.example.spring.MyFactoryBean"/>
+```
