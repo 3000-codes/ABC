@@ -337,18 +337,23 @@ public void testAutoWired() {
   - 创建一个类
   - 实现 FactoryBean 接口
   - 在 Spring 配置文件中声明 `实现类` 的 bean
-    - 无法通过 property 标签设置属性，需要在实现类中设置
+    - 无法直接通过 property 标签给原始类的属性赋值
+    - 可以通过 FactoryBean 的属性赋值,从而间接给原始类的属性赋值
   - 配置文件检测到工厂 bean，会调用 getObject() 方法创建对象，如果是单例，会将对象放入 Spring 容器中，如果是多例，每次获取都会创建一个新的对象，然后将对象存储在 Spring 容器中
 
 ```java
 // 实现FactoryBean接口
+@Data
 public class MyFactoryBean implements FactoryBean<User> {
+
+    private String name;
+    private Integer age;
     // 返回创建的对象
     @Override
     public User getObject() throws Exception {
         User user = new User();
-        user.setName("张三");
-        user.setAge(18);
+        user.setName(name);
+        user.setAge(age);
         return user;
     }
 
@@ -368,5 +373,8 @@ public class MyFactoryBean implements FactoryBean<User> {
 
 ```xml
 <!-- 声明FactoryBean -->
-<bean id="myFactoryBean" class="com.example.spring.MyFactoryBean"/>
+<bean id="myFactoryBean" class="com.example.spring.MyFactoryBean">
+    <property name="name" value="张三"/>
+    <property name="age" value="18"/>
+</bean>
 ```
