@@ -324,7 +324,7 @@ public void testAutoWired() {
 }
 ```
 
-### FactoryBean
+#### FactoryBean
 
 - FactoryBean 是一个接口，Spring 中有很多的实现类，可以用来创建对象
 - FactoryBean 可以创建复杂的对象
@@ -377,4 +377,150 @@ public class MyFactoryBean implements FactoryBean<User> {
     <property name="name" value="张三"/>
     <property name="age" value="18"/>
 </bean>
+```
+
+#### bean 的作用域
+
+- bean 的作用域：bean 在 Spring 容器中的生命周期
+- bean 的作用域有 5 种：
+  - singleton：单例，一个 bean 在 Spring 容器中只有唯一一个实例，Spring 容器启动时创建实例，Spring 容器关闭时销毁实例，线程安全，Spring 默认的作用域
+  - prototype：多例，一个 bean 在 Spring 容器中可以有多个实例，每次获取都会创建一个新的实例
+  - request：一个 bean 在一次请求中只有一个实例，不同的请求会创建不同的实例
+  - session：一个 bean 在一次会话中只有一个实例，不同的会话会创建不同的实例
+  - global-session：一般用于 Portlet 应用环境，不常用
+- bean 的作用域的配置：
+  - 在 bean 标签中配置 scope 属性
+  - 在配置文件中配置 bean 的作用域
+    - `<bean id="user" class="com.example.spring.User" scope="prototype"/>`
+    - `<bean id="user" class="com.example.spring.User" scope="singleton"/>`
+- bean 的作用域的使用：
+
+```java
+// bean 的声明
+@Data
+public class User {
+    private String name;
+    private Integer age;
+    private Address address; // 自动装配的id必须和属性名一致
+}
+
+// 测试
+@Test
+public void testScope() {
+    ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+    User user1 = context.getBean("user", User.class);
+    User user2 = context.getBean("user", User.class);
+    System.out.println(user1 == user2); // singleton：true，prototype：false
+    context.close();
+}
+```
+
+#### bean 的生命周期
+
+- bean 的生命周期：bean 在 Spring 容器中的生命周期
+- bean 的生命周期有 3 个阶段：
+  - 实例化：创建 bean 的实例
+  - 初始化：初始化 bean 的属性
+  - 销毁：销毁 bean
+- bean 的生命周期的配置：
+  - 在 bean 标签中配置 init-method 和 destroy-method 属性
+  - 在配置文件中配置 bean 的生命周期
+    - `<bean id="user" class="com.example.spring.User" init-method="init" destroy-method="destroy"/>`
+- bean 的生命周期的使用：
+
+  ```java
+  // bean 的声明
+  @Data
+  public class User {
+      private String name;
+      private Integer age;
+      private Address address; // 自动装配的id必须和属性名一致
+      public void init() {
+          System.out.println("初始化");
+      }
+      public void destroy() {
+          System.out.println("销毁");
+      }
+  }
+
+  // 测试
+  @Test
+  public void testScope() {
+      ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+      User user = context.getBean("user", User.class); // 在此之前调用init方法
+      System.out.println(user);
+      context.close();// 在此之后调用destroy方法（多例不会调用）
+  }
+  ```
+
+### 基于注解的配置
+
+- 在类上使用注解：`@Component`，将类交给 Spring 管理
+  - `@Component`：普通组件，不知道是什么类型的组件，可以使用 `@Component` 注解
+  - `@Controller`：控制器组件，一般用于 SpringMVC 的控制器
+  - `@Service`：业务逻辑组件，一般用于业务逻辑层
+  - `@Repository`：数据访问组件，一般用于数据访问层
+  - 如果需要给组件起别名，可以使用 `@Component("别名")` 注解
+- 在配置文件中配置组件扫描器，扫描注解
+
+  - `<context:component-scan base-package="com.example.spring"/>`,基本包名,会扫描该包及其子包下的所有类,多个包名用逗号隔开
+  - `<context:component-scan base-package="com.example.spring" resource-pattern="**/*.class"/>`,扫描指定(符合正则表达式)的资源文件
+  - use-default-filters：是否使用默认的过滤器
+    - `<context:component-scan base-package="com.example.spring" use-default-filters="false">`,不使用默认的过滤器
+    - `<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>`,只扫描指定注解的类,必须设置 use-default-filters
+    - `<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>`,排除指定注解的类,可以不设置 use-default-filters
+
+- 在类的属性上使用注解：`@Autowired`，自动装配(装配 的类必须在 Spring 容器中)
+
+  - `@Autowired`：根据类型自动装配，如果有多个类型一样的 bean，会报错
+    - 如果有多个类型一样的 bean，可以使用 `@Qualifier` 指定名称
+    - 将`required`属性设置为`false`时，如果没有找到对应的 bean，不会报错，但是属性值为`null`
+  - `@Qualifier`：根据名称自动装配，需要和 `@Autowired` 一起使用,如果有多个类型一样的 bean，可以使用 `@Qualifier` 指定名称
+  - `@Resource`：根据类型自动装配，如果有多个类型一样的 bean，会根据名称自动装配
+    - JavaEE 的注解，spring 提供了实现,`Autowired`是 spring 的注解
+    - 效果和`@Autowired`+`@Qualifier`一样
+  - `@Value`：给属性赋值，
+    - 可以给基本类型和 String 类型赋值
+    - 也可以给 bean 类型赋值
+    - 可以使用 SpEL 表达式
+    - 可以使用到`context:property-placeholder`标签中配置的属性
+
+- 在类的方法上使用注解：`@PostConstruct`，初始化方法
+- 在类的方法上使用注解：`@PreDestroy`，销毁方法
+- 在类上使用注解：`@Scope`，设置作用域
+- 在类上使用注解：`@Lazy`，懒加载
+
+```java
+// bean 的声明
+@Data
+@Component("user") // 默认id为类名首字母小写
+@Scope("prototype") // 设置作用域
+@Lazy // 懒加载
+public class User {
+    @Value("张三") // 给属性赋值
+    private String name;
+    @Value("18")
+    private Integer age;
+    @Autowired // 自动装配
+    @Qualifier("address") // 根据名称自动装配
+    private Address address; // 自动装配的id必须和属性名一致
+    @PostConstruct // 初始化方法
+    public void init() {
+        System.out.println("初始化");
+    }
+    @PreDestroy // 销毁方法
+    public void destroy() {
+        System.out.println("销毁");
+    }
+}
+
+// 测试
+@Test
+public void testScope() {
+    ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+    User user1 = context.getBean("user", User.class);
+    User user2 = context.getBean("user", User.class);
+    System.out.println(user1 == user2); // singleton：true，prototype：false
+    context.close();
+}
 ```
