@@ -12,9 +12,7 @@
       </el-form-item>
       <el-form-item>
         <!-- <el-button type="primary" @click="login">Login</el-button> -->
-        <div class="login-btn" @click="login">
-          登录
-        </div>
+        <div class="login-btn" @click="login">登录</div>
       </el-form-item>
     </el-form>
   </div>
@@ -22,6 +20,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import HomeView from '@/views/HomeView.vue'
 const router = useRouter()
 const form = ref({
   username: '',
@@ -35,13 +34,10 @@ const login = () => {
 }
 
 const back2Home = () => {
-
-
-  console.log(router);
+  console.log(router)
 
   router.push('/')
 }
-
 </script>
 
 <style lang="scss" scoped>
@@ -52,7 +48,6 @@ const back2Home = () => {
   justify-content: center;
   align-items: center;
   background: linear-gradient(to bottom right, blue, pink);
-
 
   .el-form {
     width: 300px;
@@ -76,7 +71,7 @@ const back2Home = () => {
       margin: -4px;
       border-radius: inherit;
       /*important*/
-      background: linear-gradient(to right, #8F41E9, #578AEF);
+      background: linear-gradient(to right, #8f41e9, #578aef);
     }
 
     .login-btn {
