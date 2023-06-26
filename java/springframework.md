@@ -352,7 +352,7 @@ public class MyFactoryBean implements FactoryBean<User> {
     @Override
     public User getObject() throws Exception {
         User user = new User();
-        user.setName(name);
+        user.setName(name); // 通过FactoryBean的属性赋值
         user.setAge(age);
         return user;
     }
@@ -423,6 +423,7 @@ public void testScope() {
   - 初始化：初始化 bean 的属性
   - 销毁：销毁 bean
 - bean 的生命周期的配置：
+  - 在 bean 类中配置初始化方法和销毁方法
   - 在 bean 标签中配置 init-method 和 destroy-method 属性
   - 在配置文件中配置 bean 的生命周期
     - `<bean id="user" class="com.example.spring.User" init-method="init" destroy-method="destroy"/>`
@@ -522,5 +523,134 @@ public void testScope() {
     User user2 = context.getBean("user", User.class);
     System.out.println(user1 == user2); // singleton：true，prototype：false
     context.close();
+}
+```
+
+#### 配置类注解扫描
+
+- 在类上使用注解：`@Configuration`，配置类
+- 在配置类中使用注解：`@ComponentScan`，配置组件扫描器
+- 在配置类中使用注解：`@Bean`，配置 bean
+
+```java
+// bean类
+@Component
+public class User{
+    private String name;
+    private Integer age;
+}
+
+// 配置类
+@Configuration
+@ComponentScan("com.example.spring") // 扫描指定包下的所有类
+public class SpringConfig {
+    @Bean
+    public User user() {
+        return new User();
+    }
+}
+
+// 测试
+@Test
+public void testScope() {
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfig.class); // 传入配置类
+    User user = context.getBean("user", User.class); // 获取bean
+    System.out.println(user);
+    context.close();
+}
+
+```
+
+### 整合 Junit 省略配置 IOC
+
+- 导入 Junit 依赖
+- 在测试方法上使用注解：`@RunWith`，指定运行器
+- 在测试方法上使用注解：`@ContextConfiguration`，指定配置文件
+
+```java
+@RunWith(SpringJUnit4ClassRunner.class) // 指定运行器
+@ContextConfiguration("classpath:applicationContext.xml") // 指定配置文件
+public class SpringTest {
+
+    // 可以直接使用注解获取bean
+    @Autowired
+    private User user;
+    @Test
+    public void test() {
+        System.out.println(user);
+    }
+}
+```
+
+## Spring AOP
+
+### AOP 概述
+
+- AOP：Aspect Oriented Programming，面向切面编程
+- AOP 是一种编程思想，不是编程语言
+- AOP 是 OOP 的补充，OOP 解决的是代码复用的问题，AOP 解决的是业务重复的问题
+
+### AOP 原理
+
+- AOP 是基于动态代理实现的
+- AOP 有两种实现方式
+  - JDK 动态代理：基于接口实现的动态代理
+  - CGLIB 动态代理：基于子类实现的动态代理
+- JDK 动态代理
+  - 基于接口实现的动态代理
+  - 代理类和目标类实现了相同的接口
+  - 代理类和目标类是兄弟关系
+  - 代理类重写了目标类的方法，增强了目标类的方法
+- CGLIB 动态代理
+  - 基于子类实现的动态代理
+  - 代理类是目标类的子类
+  - 代理类重写了目标类的方法，增强了目标类的方法
+
+### AOP 实现
+
+- 导入 AOP 依赖
+- 在配置文件中开启 AOP 注解支持：`<aop:aspectj-autoproxy/>`
+- 在类上使用注解：`@Aspect`，声明切面类
+- 在切面类的方法上使用注解：`@Before`，前置通知
+- 在切面类的方法上使用注解：`@AfterReturning`，后置通知
+- 在切面类的方法上使用注解：`@AfterThrowing`，异常通知
+- 在切面类的方法上使用注解：`@After`，最终通知
+- 在切面类的方法上使用注解：`@Around`，环绕通知
+
+```java
+// 切面类
+@Aspect // 声明切面类
+@Component // 注册到容器中
+public class MyAspect {
+    @Before("execution(* com.example.spring.service.impl.UserServiceImpl.*(..))") // 前置通知
+    public void before() {
+        System.out.println("前置通知");
+    }
+    @AfterReturning("execution(* com.example.spring.service.impl.UserServiceImpl.*(..))") // 后置通知
+    public void afterReturning() {
+        System.out.println("后置通知");
+    }
+    @AfterThrowing("execution(* com.example.spring.service.impl.UserServiceImpl.*(..))") // 异常通知
+    public void afterThrowing() {
+        System.out.println("异常通知");
+    }
+    @After("execution(* com.example.spring.service.impl.UserServiceImpl.*(..))") // 最终通知
+    public void after() {
+        System.out.println("最终通知");
+    }
+    @Around("execution(* com.example.spring.service.impl.UserServiceImpl.*(..))") // 环绕通知
+    public void around(ProceedingJoinPoint pjp) throws Throwable {
+        System.out.println("环绕通知前");
+        pjp.proceed(); // 执行目标方法
+        System.out.println("环绕通知后");
+    }
+}
+
+// 测试
+@Test
+public void test() {
+    ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+    UserService userService = context.getBean("userService", UserService.class);
+    userService.add();
 }
 ```
