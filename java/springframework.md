@@ -160,15 +160,17 @@ context.close();
 <bean id="user" class="com.example.spring.User">
     <property name="name" value="张三"/>
     <property name="age" value="18"/>
+    <property name="address" ref="address"/>
 </bean>
 <!-- 有参构造方法, constructor-arg调用的是有参构造方法-->
 <bean id="user" class="com.example.spring.User">
 <!--
-    value：参数值，必须，如果不指定index和name，那么参数的位置必须和构造方法中的参数位置一致
+    value/ref：参数值，必须，如果不指定index和name，那么参数的位置必须和构造方法中的参数位置一致
     name，index：非必须，指定参数的位置，index从0开始，name指定参数的名称
  -->
     <constructor-arg name="name" value="张三" index="0"/>
     <constructor-arg name="age" value="18" index="1"/>
+    <constructor-arg name="address" ref="address" index="2"/>
 </bean>
 
 ```
@@ -480,6 +482,7 @@ public void testScope() {
   - `@Resource`：根据类型自动装配，如果有多个类型一样的 bean，会根据名称自动装配
     - JavaEE 的注解，spring 提供了实现,`Autowired`是 spring 的注解
     - 效果和`@Autowired`+`@Qualifier`一样
+    - 只能使用字段和 setter 注入,不能使用构造器注入
   - `@Value`：给属性赋值，
     - 可以给基本类型和 String 类型赋值
     - 也可以给 bean 类型赋值
@@ -512,6 +515,10 @@ public class User {
     @PreDestroy // 销毁方法
     public void destroy() {
         System.out.println("销毁");
+    }
+    @Autowired // 自动装配放在方法上,意思是将对象注入到方法参数中
+    public void setAddress(Address address) {
+        this.address = address;
     }
 }
 
@@ -594,8 +601,8 @@ public class SpringTest {
 
 - AOP 是基于动态代理实现的
 - AOP 有两种实现方式
-  - JDK 动态代理：基于接口实现的动态代理
-  - CGLIB 动态代理：基于子类实现的动态代理
+  - JDK 动态代理：基于`接口`实现的动态代理
+  - CGLIB 动态代理：基于`子类`实现的动态代理
 - JDK 动态代理
   - 基于接口实现的动态代理
   - 代理类和目标类实现了相同的接口
@@ -623,15 +630,21 @@ public class SpringTest {
 @Component // 注册到容器中
 public class MyAspect {
     @Before("execution(* com.example.spring.service.impl.UserServiceImpl.*(..))") // 前置通知
-    public void before() {
+    public void before(JoinPoint jp) {
+        // JoinPoint：连接点，可以获取目标方法的信息
+        // 获取方法名:jp.getSignature().getName()
+        // 获取参数列表:jp.getArgs()
+        // 获取目标对象:jp.getTarget()
         System.out.println("前置通知");
     }
-    @AfterReturning("execution(* com.example.spring.service.impl.UserServiceImpl.*(..))") // 后置通知
-    public void afterReturning() {
+    @AfterReturning("execution(* com.example.spring.service.impl.UserServiceImpl.*(..))", "result") // 后置通知
+    public void afterReturning(JoinPoint jp, Object result) {
+      // returning="result"：result是目标方法的返回值，需要在参数中声明
         System.out.println("后置通知");
     }
-    @AfterThrowing("execution(* com.example.spring.service.impl.UserServiceImpl.*(..))") // 异常通知
-    public void afterThrowing() {
+    @AfterThrowing("execution(* com.example.spring.service.impl.UserServiceImpl.*(..))", "ex") // 异常通知
+    public void afterThrowing(JoinPoint jp, Exception ex) {
+      // throwing="ex"：ex是目标方法抛出的异常，需要在参数中声明
         System.out.println("异常通知");
     }
     @After("execution(* com.example.spring.service.impl.UserServiceImpl.*(..))") // 最终通知
