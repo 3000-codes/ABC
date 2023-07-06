@@ -1,0 +1,13 @@
+{
+    "manifest_version": 3, 
+    "name": "browser-extension", 
+    "version": "0.0.1", 
+    "description": "My Extension",
+    "content_scripts": [
+      {
+        "matches": ["http://*/*", "https://*/*"], 
+        "js": ["content-script.js"], 
+        "css": ["content-style.css"] 
+      }
+    ]
+  }

@@ -667,3 +667,267 @@ public void test() {
     userService.add();
 }
 ```
+
+切点内提取
+
+```java
+// 切面类
+@Aspect // 声明切面类
+@Component // 注册到容器中
+public class MyAspect {
+    @Pointcut("execution(* com.example.spring.service.impl.UserServiceImpl.*(..))") // 切点:提取公共的切点表达式,必须是空方法,名称随意
+    public void pointcut() {}
+    @Before("pointcut()") // 前置通知
+    public void before(JoinPoint jp) {
+        System.out.println("前置通知");
+    }
+    @AfterReturning(pointcut = "pointcut()", returning = "result") // 后置通知
+    public void afterReturning(JoinPoint jp, Object result) {
+        System.out.println("后置通知");
+    }
+    @AfterThrowing(pointcut = "pointcut()", throwing = "ex") // 异常通知
+    public void afterThrowing(JoinPoint jp, Exception ex) {
+        System.out.println("异常通知");
+    }
+    @After("pointcut()") // 最终通知
+    public void after() {
+        System.out.println("最终通知");
+    }
+    @Around("pointcut()") // 环绕通知:一个抵得上上面四个通知
+    public void around(ProceedingJoinPoint pjp) throws Throwable {
+        Object[] args = pjp.getArgs(); // 获取参数列表
+        Object result = null;
+        try{
+            System.out.println("环绕通知前");
+            result = pjp.proceed(args); // 执行目标方法
+            System.out.println("环绕通知后");
+        } catch (Throwable throwable) {
+            System.out.println("环绕通知异常");
+            throw throwable;
+        } finally {
+            System.out.println("环绕通知最终");
+        }
+        return result;
+    }
+}
+```
+
+切点外提取
+
+```java
+// 声明一个切点类:可以提取多个切点表达式
+@Component
+public class MyPointcut {
+    @Pointcut("execution(* com.example.spring.service.impl.UserServiceImpl.*(..))") // 切点:提取公共的切点表达式,必须是空方法,名称随意
+    public void pointcut() {}
+
+    @Pointcut("execution(* com.example.spring.service.impl.UserServiceImpl.*(..))") // 切点:提取公共的切点表达式,必须是空方法,名称随意
+    public void pointcut2() {}
+}
+
+// 切面类1
+@Aspect // 声明切面类
+@Component // 注册到容器中
+public class MyAspect {
+    @Before("MyPointcut.pointcut()") // 前置通知
+    public void before(JoinPoint jp) {
+        System.out.println("前置通知");
+    }
+}
+
+// 切面类2
+@Aspect // 声明切面类
+@Component // 注册到容器中
+public class MyAspect2 {
+    @Before("MyPointcut.pointcut2()") // 前置通知
+    public void before(JoinPoint jp) {
+        System.out.println("前置通知");
+    }
+}
+
+```
+
+#### 切点表达式
+
+- execution：用于匹配方法执行的连接点,必须使用这个关键字包裹表达式
+- 前两位是描述方法的修饰符和任意返回值，\*表示任意修饰符和任意返回值(此处使用一个\*表示同时匹配修饰符和返回值,相当于两位)
+- 第三位是包名:
+  - 可以写具体地址:com.example.spring.service.impl
+  - 可以写通配符:com.example.spring.service.\*
+  - 可以使用`..`,代表无视层级:com.example.spring..\*,但是不能使用`..`开头
+- 第四位是类名:
+  - 可以写具体类名:UserServiceImpl
+  - 可以写通配符:\*ServiceImpl
+- 第五位是方法名:
+  - 可以写具体方法名:add
+  - 可以写通配符:\*
+- 最后一位是参数列表:
+  - 可以写具体参数列表:(String, int),主意包装类和基本类型不一样
+  - 可以写通配符:(..)
+    - (..)表示任意参数列表
+    - (\*)表示一个参数,任意类型
+    - (\*, String)表示两个参数,第一个任意类型,第二个 String 类型
+    - (String, \*)表示两个参数,第一个 String 类型,第二个任意类型
+    - (String ..)表示至少两个参数,第一个 String 类型,后面任意类型
+    - (.. String)表示至少两个参数,最后一个 String 类型,前面任意类型
+
+#### 切面优先级
+
+- 洋葱模型
+- 修改切面优先级`@Order(1)`,数字越小优先级越高
+
+```java
+// 切面类
+@Aspect // 声明切面类
+@Component // 注册到容器中
+@Order(1) // 修改切面优先级
+
+```
+
+### 基于 xml 的 AOP
+
+```xml
+<!-- ioc注解扫描 -->
+<context:component-scan base-package="com.example.spring"></context:component-scan>
+
+<!-- aop配置 -->
+<aop:config>
+    <!-- 切面 -->
+    <aop:aspect ref="myAspect">
+        <!-- 切点 -->
+        <aop:pointcut id="pointcut" expression="execution(* com.example.spring.service.impl.UserServiceImpl.*(..))"/>
+        <!-- 通知 -->
+        <aop:before method="before" pointcut-ref="pointcut"/> <!-- 前置通知 -->
+        <aop:after-returning method="afterReturning" pointcut-ref="pointcut" returning="result"/> <!-- 后置通知 -->
+        <aop:after-throwing method="afterThrowing" pointcut-ref="pointcut" throwing="ex"/> <!-- 异常通知 -->
+        <aop:after method="after" pointcut-ref="pointcut"/> <!-- 最终通知 -->
+        <aop:around method="around" pointcut-ref="pointcut"/> <!-- 环绕通知 -->
+    </aop:aspect>
+</aop:config>
+```
+
+### JDBCTemplate
+
+一个 JDBC 的封装,提供了一系列的方法,可以直接使用
+
+```java
+// 创建 JdbcTemplate 对象
+JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+// 执行方法
+jdbcTemplate.update("insert into user values(?, ?)", "张三", 18);
+```
+
+## 声明式事务(spring tx)
+
+- 编程式事务:在代码中手动开启事务,提交事务,回滚事务
+  - 细节暴露在代码中,需要实现所有细节,繁琐
+  - 代码复用性差
+- 声明式事务:不需要手动开启事务,提交事务,回滚事务,只需要在配置文件中配置即可
+
+### 事务管理器
+
+顶级接口:`TransactionManager`(5.2 之后)/`PlatformTransactionManager`(5.2 之前)
+
+- getTransaction:获取事务
+- commit:提交事务
+- rollback:回滚事务
+
+使用:
+
+- 选择对应持久层框架的事务管理器,在配置文件中配置
+- `<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">`
+- 在配置文件中配置事务通知
+  - `<tx:advice id="txAdvice" transaction-manager="transactionManager">`
+  - `<aop:config>`
+  - `<aop:pointcut id="pointcut" expression="execution(* com.example.spring.service.impl.UserServiceImpl.*(..))"/>`
+  - `<aop:advisor advice-ref="txAdvice" pointcut-ref="pointcut"/>`
+  - `</aop:config>`
+- 在配置文件中开启事务注解
+  - `<tx:annotation-driven transaction-manager="transactionManager"/>`
+- 在需要事务的方法上添加注解
+  - `@Transactional`
+    - 可以添加在类上,表示类中所有方法都需要事务
+    - 可以添加在方法上,表示该方法需要事务
+    - 既添加在类上,又添加在方法上,方法上的注解优先级高
+  - `@Transactional`的属性
+    - readOnly:是否只读,默认 false,查询时可以设置为 true,提高性能
+    - timeout:超时时间,默认值为`-1`,表示不超时,单位为秒
+    - rollbackFor:回滚,默认值为`RuntimeException`,表示遇到运行时异常回滚
+      - 可以指定异常类型,遇到指定异常类型回滚
+      - 可以指定异常类型数组,遇到数组中的异常类型回滚
+    - noRollbackFor:不回滚,默认值为`{}`,表示不回滚
+      - 可以指定异常类型,遇到指定异常类型不回滚
+      - 可以指定异常类型数组,遇到数组中的异常类型不回滚
+    - isolation:事务隔离级别,默认值为`DEFAULT`,表示使用数据库默认的隔离级别
+      - `DEFAULT`:使用数据库默认的隔离级别
+      - `READ_UNCOMMITTED`:读未提交
+      - `READ_COMMITTED`:读已提交
+      - `REPEATABLE_READ`:可重复读
+      - `SERIALIZABLE`:串行化
+
+```xml
+<!-- ioc注解扫描 -->
+<context:component-scan base-package="com.example.spring"></context:component-scan>
+
+<!-- aop配置 -->
+<aop:config>
+    <!-- 切面 -->
+    <aop:aspect ref="myAspect">
+        <!-- 切点 -->
+        <aop:pointcut id="pointcut" expression="execution(* com.example.spring.service.impl.UserServiceImpl.*(..))"/>
+        <!-- 通知 -->
+        <aop:before method="before" pointcut-ref="pointcut"/> <!-- 前置通知 -->
+        <aop:after-returning method="afterReturning" pointcut-ref="pointcut" returning="result"/> <!-- 后置通知 -->
+        <aop:after-throwing method="afterThrowing" pointcut-ref="pointcut" throwing="ex"/> <!-- 异常通知 -->
+        <aop:after method="after" pointcut-ref="pointcut"/> <!-- 最终通知 -->
+        <aop:around method="around" pointcut-ref="pointcut"/> <!-- 环绕通知 -->
+    </aop:aspect>
+</aop:config>
+
+<!-- 事务管理器 -->
+<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    <property name="dataSource" ref="dataSource"/>
+</bean>
+
+<!-- 事务通知 -->
+<tx:advice id="txAdvice" transaction-manager="transactionManager">
+    <tx:attributes>
+        <tx:method name="add" propagation="REQUIRED"/>
+        <tx:method name="delete" propagation="REQUIRED"/>
+        <tx:method name="update" propagation="REQUIRED"/>
+        <tx:method name="select" read-only="true"/>
+        <tx:method name="*" propagation="REQUIRED"/>
+    </tx:attributes>
+</tx:advice>
+
+<!-- 开启事务注解 -->
+<tx:annotation-driven transaction-manager="transactionManager"/>
+```
+
+```java
+// 事务管理器
+@Autowired
+private PlatformTransactionManager transactionManager;
+
+// 事务通知
+@Pointcut("execution(* com.example.spring.service.impl.UserServiceImpl.*(..))")
+private void pointcut() {
+}
+
+@Before("pointcut()")
+public void before() {
+    // 获取事务
+    TransactionStatus transactionStatus = transactionManager.getTransaction(new DefaultTransactionDefinition());
+    // 保存事务
+    transactionMap.put("transactionStatus", transactionStatus);
+}
+
+@AfterReturning("pointcut()")
+public void afterReturning() {
+    // 获取事务
+    TransactionStatus transactionStatus = (TransactionStatus) transactionMap.get("transactionStatus");
+    // 提交事务
+    transactionManager.commit(transactionStatus);
+}
+
+```
