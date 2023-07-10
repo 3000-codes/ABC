@@ -860,10 +860,10 @@ jdbcTemplate.update("insert into user values(?, ?)", "张三", 18);
       - 可以指定异常类型数组,遇到数组中的异常类型不回滚
     - isolation:事务隔离级别,默认值为`DEFAULT`,表示使用数据库默认的隔离级别
       - `DEFAULT`:使用数据库默认的隔离级别
-      - `READ_UNCOMMITTED`:读未提交
-      - `READ_COMMITTED`:读已提交
-      - `REPEATABLE_READ`:可重复读
-      - `SERIALIZABLE`:串行化
+      - `READ_UNCOMMITTED`:读未提交:脏读,不可重复读,幻读
+      - `READ_COMMITTED`:读已提交:不可重复读,幻读
+      - `REPEATABLE_READ`:可重复读:幻读
+      - `SERIALIZABLE`:串行化:性能最低,不会出现脏读,不可重复读,幻读
 
 ```xml
 <!-- ioc注解扫描 -->
