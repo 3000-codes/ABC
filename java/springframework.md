@@ -864,6 +864,14 @@ jdbcTemplate.update("insert into user values(?, ?)", "张三", 18);
       - `READ_COMMITTED`:读已提交:不可重复读,幻读
       - `REPEATABLE_READ`:可重复读:幻读
       - `SERIALIZABLE`:串行化:性能最低,不会出现脏读,不可重复读,幻读
+    - 事务的传播(propagation)
+      - `REQUIRED`:默认值,如果当前没有事务,就新建一个事务,如果已经存在一个事务中,加入到这个事务中
+      - `SUPPORTS`:支持当前事务,如果当前没有事务,就以非事务方式执行
+      - `MANDATORY`:使用当前事务,如果当前没有事务,就抛出异常
+      - `REQUIRES_NEW`:新建事务,如果当前存在事务,把当前事务挂起
+      - `NOT_SUPPORTED`:以非事务方式执行操作,如果当前存在事务,就把当前事务挂起
+      - `NEVER`:以非事务方式执行,如果当前存在事务,抛出异常
+      - `NESTED`:如果当前存在事务,则在嵌套事务内执行,如果当前没有事务,则执行与`REQUIRED`类似的操作
 
 ```xml
 <!-- ioc注解扫描 -->
@@ -928,6 +936,178 @@ public void afterReturning() {
     TransactionStatus transactionStatus = (TransactionStatus) transactionMap.get("transactionStatus");
     // 提交事务
     transactionManager.commit(transactionStatus);
+}
+
+```
+
+## MVC
+
+### 组件作用
+
+- `DispatcherServlet`:前端控制器,接收请求,分发请求
+- `HandlerMapping`:处理器映射器,根据请求找到对应的处理器
+- `HandlerAdapter`:处理器适配器,根据处理器调用对应的方法
+- `Handler`:处理器,处理请求,就是我们的控制器中的方法,需要我们自己实现并注册到`HandlerAdapter`中
+- `ViewResolver`:视图解析器,根据逻辑视图名找到对应的视图
+
+### 配置
+
+- 配置`DispatcherServlet`
+  - 在`web.xml`中配置`DispatcherServlet`
+    - `DispatcherServlet`的配置文件默认为`[servlet-name]-servlet.xml`
+    - 可以通过`contextConfigLocation`指定配置文件
+  - 在`web.xml`中配置`ContextLoaderListener`
+    - `ContextLoaderListener`的配置文件默认为`applicationContext.xml`
+    - 可以通过`contextConfigLocation`指定配置文件
+- 配置`HandlerMapping`
+  - 在`[servlet-name]-servlet.xml`中配置`HandlerMapping`
+    - `DefaultAnnotationHandlerMapping`:注解处理器映射器
+    - `BeanNameUrlHandlerMapping`:根据`bean`的名称映射处理器
+    - `SimpleUrlHandlerMapping`:根据`url`映射处理器
+- 配置`HandlerAdapter`
+  - 在`[servlet-name]-servlet.xml`中配置`HandlerAdapter`
+    - `SimpleControllerHandlerAdapter`:处理`SimpleController`类型的处理器
+    - `HttpRequestHandlerAdapter`:处理`HttpRequestHandler`类型的处理器
+    - `AnnotationMethodHandlerAdapter`:处理`Controller`类型的处理器
+- 配置`Handler`
+  - 在`[servlet-name]-servlet.xml`中配置`Handler`
+    - `SimpleController`:处理简单的请求
+    - `HttpRequestHandler`:处理`Servlet`原生的`HttpServletRequest`和`HttpServletResponse`
+    - `Controller`:处理请求,需要我们自己实现
+- 配置`ViewResolver`
+  - 在`[servlet-name]-servlet.xml`中配置`ViewResolver`
+    - `InternalResourceViewResolver`:处理`jsp`类型的视图
+    - `FreeMarkerViewResolver`:处理`FreeMarker`类型的视图
+    - `VelocityViewResolver`:处理`Velocity`类型的视图
+    - `XmlViewResolver`:处理`xml`类型的视图
+    - `ResourceBundleViewResolver`:处理`ResourceBundle`类型的视图
+    - `UrlBasedViewResolver`:处理`url`类型的视图
+
+```xml
+<!-- web.xml -->
+<!-- 配置DispatcherServlet -->
+<servlet>
+    <servlet-name>springmvc</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <!-- 配置DispatcherServlet的配置文件 -->
+    <init-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath:springmvc.xml</param-value>
+    </init-param>
+    <!-- 启动时加载 -->
+    <load-on-startup>1</load-on-startup>
+</servlet>
+
+<!-- springmvc.xml -->
+<!-- 配置controller -->
+<context:component-scan base-package="com.example.springmvc.controller"></context:component-scan>
+
+<!-- 配置视图解析器 -->
+<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    <!-- 前缀 -->
+    <property name="prefix" value="/WEB-INF/jsp/"/>
+    <!-- 后缀 -->
+    <property name="suffix" value=".jsp"/>
+</bean>
+
+```
+
+```java
+// 配置controller
+@Controller // 配置控制器
+@RequestMapping("/user") // 配置请求路径(通用路径,
+public class UserController {
+
+    @RequestMapping("/add")  // 配置请求路径 /user/add
+    public String add() {
+        return "add";
+    }
+
+    @RequestMapping("/delete") // 可以被任意的请求方式访问
+    public String delete() {
+        return "delete";
+    }
+
+    @RequestMapping("/select", method = RequestMethod.GET) // 配置请求方式,也可以配置多个
+    public String select() {
+        return "select";
+    }
+
+    @RequestMapping({"/update", "/modify"}) // 配置多个请求路径
+    public String update() {
+        return "update";
+    }
+
+    @GetMapping("/get") // 配置get请求,GetMapping,PostMapping,PutMapping,DeleteMapping
+    public String get() {
+        return "get";
+    }
+
+}
+```
+
+### 注解
+
+- `@Controller`:配置控制器
+- `@RequestMapping`:配置请求路径
+
+  - `value`:配置请求路径
+  - `method`:配置请求方式
+  - `params`:配置请求参数
+  - `headers`:配置请求头
+
+- `@GetMapping`:配置 get 请求
+- `@PostMapping`:配置 post 请求
+- `@PutMapping`:配置 put 请求
+- `@DeleteMapping`:配置 delete 请求
+
+- `@PathVariable`:获取路径参数
+- `@RequestParam`:获取请求参数
+
+- `@RequestHeader`:获取请求头
+- `@CookieValue`:获取 cookie
+- `@RequestBody`:获取请求体
+- `@ResponseBody`:返回 json 数据
+- `@ResponseStatus`:配置响应状态码
+- `@ControllerAdvice`:配置全局异常处理
+- `@ExceptionHandler`:配置异常处理
+- `@InitBinder`:配置数据绑定
+- `@ModelAttribute`:配置模型数据
+
+### 数据绑定
+
+- `@RequestParam`:获取请求参数
+  - `value`:参数名
+  - `required`:是否必须
+  - `defaultValue`:默认值
+- `@PathVariable`:获取路径参数
+
+```java
+// 获取请求参数: http://localhost:8080/user/add?username=aaa&password=123
+@RequestMapping("/add")
+public String add(@RequestParam("username") String username, @RequestParam("password") String password) {
+    System.out.println(username + " " + password);
+    return "add";
+}
+
+// 获取路径参数: http://localhost:8080/user/delete/1
+@RequestMapping("/delete/{id}")
+public String delete(@PathVariable("id") Integer id) {
+    System.out.println(id);
+    return "delete";
+}
+// 使用实体类接收参数:必须保证参数名和实体类的属性名一致,无法设置必填和默认值(可以在实体类中设置)
+@RequestMapping("/update")
+public String update(User user) {
+    System.out.println(user);
+    return "update";
+}
+
+// 级联属性: http://localhost:8080/user/update?username=aaa&password=123&address.city=beijing
+@RequestMapping("/update")
+public String update(User user) {
+    System.out.println(user);
+    return "update";
 }
 
 ```
