@@ -1110,4 +1110,162 @@ public String update(User user) {
     return "update";
 }
 
+// 数组参数: http://localhost:8080/user/select?ids=1&ids=2&ids=3
+@RequestMapping("/select")
+public String select(Integer[] ids) {
+    System.out.println(Arrays.toString(ids));
+    return "select";
+}
+
+// 集合参数: http://localhost:8080/user/select?ids=1&ids=2&ids=3
+@RequestMapping("/select")
+public String select(@RequestParam("ids") List<Integer> ids) {
+    System.out.println(ids);
+    return "select";
+}
+
+// Map参数: http://localhost:8080/user/select?map[username]=aaa&map[password]=123
+@RequestMapping("/select")
+public String select(@RequestParam("map") Map<String, Object> map) {
+    System.out.println(map);
+    return "select";
+}
+
+// 获取请求头: http://localhost:8080/user/get
+@RequestMapping("/get")
+public String get(@RequestHeader("User-Agent") String userAgent) {
+    System.out.println(userAgent);
+    return "get";
+}
+
+// 获取cookie: http://localhost:8080/user/get
+@RequestMapping("/get")
+public String get(@CookieValue("JSESSIONID") String jsessionid) {
+    System.out.println(jsessionid);
+    return "get";
+}
+
+// 获取请求体: http://localhost:8080/user/get
+@RequestMapping("/get")
+public String get(@RequestBody String body) {
+    System.out.println(body);
+    return "get";
+}
 ```
+
+### 转发和重定向
+
+```java
+// 转发
+@RequestMapping("/forward")
+public String forward() {
+    return "forward:/WEB-INF/jsp/add.jsp"; // 转发到指定的页面
+}
+
+// 重定向
+@RequestMapping("/redirect")
+public String redirect() {
+    return "redirect:/index.jsp"; // 重定向到指定的页面
+}
+```
+
+### API 对象
+
+- `HttpServletRequest`:获取请求对象
+- `HttpServletResponse`:获取响应对象
+- `HttpSession`:获取会话对象
+- `ServletContext`:获取上下文对象
+  - 无法直接获取,需要通过 request 对象或者 session 对象获取
+  - `request.getServletContext()`/`session.getServletContext()`
+  -
+
+````java
+// 获取请求对象
+@RequestMapping("/request")
+public String request(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+    System.out.println(request);
+    return "request";
+}
+
+
+### 数据转换
+
+- `Converter`:转换器
+- `Formatter`:格式化器
+- `GenericConverter`:通用转换器
+
+```java
+// 配置转换器
+@Configuration
+public class ConverterConfig {
+
+    @Bean
+    public Converter<String, Date> stringToDateConverter() {
+        return new Converter<String, Date>() {
+            @Override
+            public Date convert(String source) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                try {
+                    return sdf.parse(source);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        };
+    }
+
+    @Bean
+    public Converter<String, User> stringToUserConverter() {
+        return new Converter<String, User>() {
+            @Override
+            public User convert(String source) {
+                String[] arr = source.split("-");
+                User user = new User();
+                user.setUsername(arr[0]);
+                user.setPassword(arr[1]);
+                return user;
+            }
+        };
+    }
+
+    @Bean
+    public Formatter<Date> dateFormatter() {
+        return new Formatter<Date>() {
+            @Override
+            public Date parse(String text, Locale locale) throws ParseException {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                return sdf.parse(text);
+            }
+
+            @Override
+            public String print(Date object, Locale locale) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                return sdf.format(object);
+            }
+        };
+    }
+
+    @Bean
+    public GenericConverter stringToUserGenericConverter() {
+        return new GenericConverter() {
+            @Override
+            public Set<ConvertiblePair> getConvertibleTypes() {
+                Set<ConvertiblePair> set = new HashSet<>();
+                set.add(new ConvertiblePair(String.class, User.class));
+                return set;
+            }
+
+            @Override
+            public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+                String[] arr = ((String) source).split("-");
+                User user = new User();
+                user.setUsername(arr[0]);
+                user.setPassword(arr[1]);
+                return user;
+            }
+        };
+    }
+
+}
+````
