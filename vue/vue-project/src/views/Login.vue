@@ -20,7 +20,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import HomeView from '@/views/HomeView.vue'
+// import HomeView from '@/views/HomeView.vue'
 const router = useRouter()
 const form = ref({
   username: '',
