@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app">
+        <p>{{count}}</p>
+        <button @click="increment">+1</button>
+    </div>
+    <!-- <script src="./vue.源码解读.js" type="module"></script> -->
+    <script type="module">
+        import { createApp } from './vue.源码解读.js'
+        const app = createApp({
+            data() {
+                return {
+                    count: 0
+                }
+            },
+            methods: {
+                increment() {
+                    this.count++
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+
+</html>
