@@ -26,6 +26,12 @@
 - 24. I can't help doing sth. 我忍不住做某事
 - 25. I have no idea ... 我不知道...
 - 26. I wonder if ... 我想知道是否...
+- 27. I have been meaning to do sth. 我一直想做某事
+- 28. I have decided to do sth. 我已经决定做某事
+- 29. I have heard that ... 我听说...
+- 30. I have had enough of sth. 我已经受够了某事
+- 31. I'd like sb. to do sth. 我想让某人做某事
+- 32. I'd be grateful if ... 如果...我会很感激
 
 ####
 
