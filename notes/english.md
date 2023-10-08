@@ -42,3 +42,14 @@ lift 撸铁
 
 forget about it 别提了
 take a nap 小睡一会
+
+
+
+### 对某事/某人厌倦
+- be tired of sth/sb 
+- to be bored with sth/sb 
+- to be fed up with sth/sb 
+- to be sick of 
+
+
+- instead 反而
